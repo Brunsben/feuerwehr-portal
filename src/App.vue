@@ -1,123 +1,204 @@
 <template>
   <div class="min-h-screen flex flex-col">
-    <!-- ── Header ─────────────────────────────────────────────────── -->
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-30">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="text-3xl">🔥</span>
-          <div>
-            <h1 class="font-bold text-gray-900 dark:text-white text-lg leading-tight">{{ config.FEUERWEHR_NAME }}</h1>
-            <p class="text-xs text-gray-400 dark:text-gray-500 font-medium tracking-wide uppercase">Digitales Portal</p>
+    <!-- Login-Screen -->
+    <LoginView v-if="!loggedIn" @loggedIn="onLogin" />
+
+    <!-- Portal (nach Login) -->
+    <template v-else>
+      <!-- ── Header ─────────────────────────────────────────────────── -->
+      <header class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">🔥</span>
+            <div>
+              <h1 class="font-bold text-gray-900 dark:text-white text-lg leading-tight">{{ config.FEUERWEHR_NAME }}</h1>
+              <p class="text-xs text-gray-400 dark:text-gray-500 font-medium tracking-wide uppercase">Digitales Portal</p>
+            </div>
           </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <!-- Uhrzeit -->
-          <div class="hidden sm:block text-right mr-4">
-            <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ time }}</div>
-            <div class="text-xs text-gray-400 dark:text-gray-500">{{ date }}</div>
-          </div>
-          <!-- Dark Mode Toggle -->
-          <button @click="toggleDark"
-            class="p-2.5 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            :title="darkMode ? 'Helles Design' : 'Dunkles Design'">
-            <i :class="darkMode ? 'ph ph-sun' : 'ph ph-moon'" class="text-xl"></i>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- ── Main Content ───────────────────────────────────────────── -->
-    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
-      <!-- Willkommen -->
-      <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Willkommen im Feuerwehr-Portal
-        </h2>
-        <p class="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-          Wähle eine Anwendung, um loszulegen.
-        </p>
-      </div>
-
-      <!-- App-Kacheln Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-        <a v-for="app in config.APPS" :key="app.id"
-          :href="app.path"
-          class="app-card group block bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-
-          <!-- Farbiger Header-Stripe -->
-          <div :class="headerClass(app.color)" class="h-1.5"></div>
-
-          <div class="p-5 sm:p-6">
-            <!-- Icon + Status -->
-            <div class="flex items-start justify-between mb-4">
-              <div :class="iconBgClass(app.color)" class="w-12 h-12 rounded-xl flex items-center justify-center">
-                <i :class="['ph', app.icon, iconTextClass(app.color)]" class="text-2xl"></i>
+          <div class="flex items-center gap-2">
+            <!-- Uhrzeit -->
+            <div class="hidden sm:block text-right mr-4">
+              <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ time }}</div>
+              <div class="text-xs text-gray-400 dark:text-gray-500">{{ date }}</div>
+            </div>
+            <!-- Angemeldeter User -->
+            <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <i class="ph ph-user-circle text-gray-500 dark:text-gray-400 text-lg"></i>
+              <div class="text-right">
+                <div class="text-xs font-semibold text-gray-700 dark:text-gray-300 leading-tight">{{ currentUser?.Benutzername }}</div>
+                <div class="text-xs text-gray-400 dark:text-gray-500 leading-tight">{{ currentUser?.Rolle }}</div>
               </div>
-              <div class="flex items-center gap-1.5" :title="statusTitle(app.id)">
-                <span :class="statusDotClass(app.id)" class="w-2.5 h-2.5 rounded-full"></span>
-                <span class="text-xs font-medium" :class="statusTextClass(app.id)">
-                  {{ statusLabel(app.id) }}
+            </div>
+            <!-- Dark Mode Toggle -->
+            <button @click="toggleDark"
+              class="p-2.5 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              :title="darkMode ? 'Helles Design' : 'Dunkles Design'">
+              <i :class="darkMode ? 'ph ph-sun' : 'ph ph-moon'" class="text-xl"></i>
+            </button>
+            <!-- Logout -->
+            <button @click="doLogout"
+              class="p-2.5 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              title="Abmelden">
+              <i class="ph ph-sign-out text-xl"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── Main Content ───────────────────────────────────────────── -->
+      <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
+        <!-- Willkommen -->
+        <div class="text-center mb-10">
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Willkommen, {{ currentUser?.Benutzername }}
+          </h2>
+          <p class="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
+            Wähle eine Anwendung, um loszulegen.
+          </p>
+        </div>
+
+        <!-- App-Kacheln Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <a v-for="app in visibleApps" :key="app.id"
+            :href="app.path"
+            class="app-card group block bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+
+            <!-- Farbiger Header-Stripe -->
+            <div :class="headerClass(app.color)" class="h-1.5"></div>
+
+            <div class="p-5 sm:p-6">
+              <!-- Icon + Status -->
+              <div class="flex items-start justify-between mb-4">
+                <div :class="iconBgClass(app.color)" class="w-12 h-12 rounded-xl flex items-center justify-center">
+                  <i :class="['ph', app.icon, iconTextClass(app.color)]" class="text-2xl"></i>
+                </div>
+                <div class="flex items-center gap-1.5" :title="statusTitle(app.id)">
+                  <span :class="statusDotClass(app.id)" class="w-2.5 h-2.5 rounded-full"></span>
+                  <span class="text-xs font-medium" :class="statusTextClass(app.id)">
+                    {{ statusLabel(app.id) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Name + Beschreibung -->
+              <h3 class="font-bold text-gray-900 dark:text-white text-base mb-1.5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                {{ app.name }}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                {{ app.description }}
+              </p>
+
+              <!-- Rolle-Badge + Öffnen-Link -->
+              <div class="mt-4 flex items-center justify-between">
+                <span v-if="appPermissions[app.id]"
+                  class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                  {{ appPermissions[app.id] }}
                 </span>
+                <div v-else></div>
+                <div class="flex items-center gap-1.5 text-sm font-semibold" :class="linkClass(app.color)">
+                  Öffnen
+                  <i class="ph ph-arrow-right text-base transition-transform group-hover:translate-x-1"></i>
+                </div>
               </div>
             </div>
-
-            <!-- Name + Beschreibung -->
-            <h3 class="font-bold text-gray-900 dark:text-white text-base mb-1.5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
-              {{ app.name }}
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              {{ app.description }}
-            </p>
-
-            <!-- Öffnen-Link -->
-            <div class="mt-4 flex items-center gap-1.5 text-sm font-semibold" :class="linkClass(app.color)">
-              Öffnen
-              <i class="ph ph-arrow-right text-base transition-transform group-hover:translate-x-1"></i>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Schnellzugriff-Links -->
-      <div class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
-        <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Schnellzugriff</h3>
-        <div class="flex flex-wrap gap-3">
-          <a href="/psa/#warnungen"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-            <i class="ph ph-warning text-lg text-red-500"></i>
-            PSA Warnungen
-          </a>
-          <a href="/psa/#statistiken"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-            <i class="ph ph-chart-bar text-lg text-blue-500"></i>
-            PSA Statistiken
-          </a>
-          <a href="/psa/#kameraden"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-            <i class="ph ph-users text-lg text-emerald-500"></i>
-            Kameraden
           </a>
         </div>
-      </div>
-    </main>
 
-    <!-- ── Footer ─────────────────────────────────────────────────── -->
-    <footer class="py-6 text-center text-xs text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
-      <p>{{ config.FEUERWEHR_NAME }} — Digitales Portal</p>
-      <p class="mt-1">
-        <a href="https://github.com/BenBruns" target="_blank" class="hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
-          Entwickelt von Benjamin Bruns
-        </a>
-      </p>
-    </footer>
+        <!-- Schnellzugriff-Links -->
+        <div class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
+          <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Schnellzugriff</h3>
+          <div class="flex flex-wrap gap-3">
+            <a href="/psa/#warnungen"
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
+              <i class="ph ph-warning text-lg text-red-500"></i>
+              PSA Warnungen
+            </a>
+            <a href="/psa/#statistiken"
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
+              <i class="ph ph-chart-bar text-lg text-blue-500"></i>
+              PSA Statistiken
+            </a>
+            <a href="/psa/#kameraden"
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
+              <i class="ph ph-users text-lg text-emerald-500"></i>
+              Kameraden
+            </a>
+          </div>
+        </div>
+      </main>
+
+      <!-- ── Footer ─────────────────────────────────────────────────── -->
+      <footer class="py-6 text-center text-xs text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
+        <p>{{ config.FEUERWEHR_NAME }} — Digitales Portal</p>
+        <p class="mt-1">
+          <a href="https://github.com/BenBruns" target="_blank" class="hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+            Entwickelt von Benjamin Bruns
+          </a>
+        </p>
+      </footer>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
+import LoginView from './components/LoginView.vue'
 
 // ── Config ──────────────────────────────────────────────────────────────
 const config = window.PORTAL_CONFIG
+
+// ── Auth ─────────────────────────────────────────────────────────────────
+const loggedIn = ref(false)
+const currentUser = ref<any | null>(null)
+const appPermissions = ref<Record<string, string>>({})
+
+function decodeJwt(token: string): any | null {
+  try {
+    return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+  } catch { return null }
+}
+
+function tryRestoreSession() {
+  const token = localStorage.getItem('fw_jwt')
+  if (!token) return
+  const payload = decodeJwt(token)
+  if (!payload || (payload.exp && payload.exp < Date.now() / 1000)) {
+    localStorage.removeItem('fw_jwt')
+    localStorage.removeItem('fw_user')
+    return
+  }
+  const savedUser = (() => {
+    try { return JSON.parse(localStorage.getItem('fw_user') || '') } catch { return null }
+  })()
+  if (!savedUser) return
+  currentUser.value = savedUser
+  appPermissions.value = savedUser.app_permissions || {}
+  loggedIn.value = true
+}
+
+function onLogin(payload: { token: string; user: any }) {
+  localStorage.setItem('fw_jwt', payload.token)
+  localStorage.setItem('fw_user', JSON.stringify(payload.user))
+  currentUser.value = payload.user
+  appPermissions.value = payload.user.app_permissions || {}
+  loggedIn.value = true
+}
+
+function doLogout() {
+  localStorage.removeItem('fw_jwt')
+  localStorage.removeItem('fw_user')
+  currentUser.value = null
+  appPermissions.value = {}
+  loggedIn.value = false
+}
+
+// ── Sichtbare Apps (nach Berechtigung) ──────────────────────────────────
+const visibleApps = computed(() => {
+  const perms = appPermissions.value
+  // Wenn keine Berechtigungen konfiguriert → alle Apps anzeigen
+  if (Object.keys(perms).length === 0) return config.APPS
+  return config.APPS.filter((app: any) => !!perms[app.id])
+})
 
 // ── Dark Mode ───────────────────────────────────────────────────────────
 const darkMode = ref(localStorage.getItem('darkMode') === 'true')
@@ -162,6 +243,7 @@ function checkAllHealth() {
 let healthInterval: ReturnType<typeof setInterval>
 
 onMounted(() => {
+  tryRestoreSession()
   updateClock()
   clockInterval = setInterval(updateClock, 30_000)
   checkAllHealth()

@@ -111,6 +111,7 @@ services:
       ADMIN_PASSWORD: "${FOODBOT_ADMIN_PASSWORD}"
       FLASK_ENV: "production"
       SECRET_KEY: "${FOODBOT_SECRET_KEY}"
+      APPLICATION_ROOT: "/food"
     depends_on:
       postgres:
         condition: service_healthy

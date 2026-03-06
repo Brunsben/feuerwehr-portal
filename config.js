@@ -1,34 +1,32 @@
-// Portal Runtime-Konfiguration
-// Wird per Volume in den Container gemountet
 window.PORTAL_CONFIG = {
-  FEUERWEHR_NAME: "FF Wietmarschen",
+  FEUERWEHR_NAME: "OF Wietmarschen",
   APPS: [
     {
       id: "psa",
       name: "PSA-Verwaltung",
-      description: "Persönliche Schutzausrüstung verwalten, prüfen und dokumentieren",
+      description: "Persönliche Schutzausrüstung verwalten, Prüfungen und Wäschen dokumentieren.",
       path: "/psa/",
-      icon: "ph-shield-checkered",
+      icon: "ph-shield-check",
       color: "red",
       healthUrl: "/psa/api/"
     },
     {
       id: "food",
-      name: "FoodBot",
-      description: "Essensbestellungen per RFID-Karte erfassen und verwalten",
+      name: "Essensbestellung",
+      description: "Menüpläne erstellen und Bestellungen für Veranstaltungen verwalten.",
       path: "/food/",
-      icon: "ph-hamburger",
+      icon: "ph-fork-knife",
       color: "amber",
-      healthUrl: "/food/health"
+      healthUrl: "/food/api/status"
     },
     {
       id: "fk",
       name: "Führerscheinkontrolle",
-      description: "Führerscheine der Maschinisten prüfen und dokumentieren",
+      description: "Führerscheine der Maschinisten prüfen und Kontrollen dokumentieren.",
       path: "/fk/",
-      icon: "ph-identification-card",
+      icon: "ph-car",
       color: "blue",
-      healthUrl: "/fk/api/health"
+      healthUrl: "/fk/"
     }
   ]
 };

@@ -133,6 +133,7 @@ services:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
       AUTH_SECRET: "${FK_AUTH_SECRET}"
       AUTH_URL: "http://localhost:3000"
+      JWT_SECRET: "${JWT_SECRET}"
       ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY}"
       SMTP_HOST: "${SMTP_HOST:-}"
       SMTP_PORT: "${SMTP_PORT:-587}"

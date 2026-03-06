@@ -1,0 +1,154 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Feuerwehr Portal — Master Docker Compose
+# Orchestriert alle Feuerwehr-Anwendungen unter einem gemeinsamen Netzwerk.
+#
+# Verwendung:
+#   cp .env.example .env    # Secrets eintragen
+#   docker compose up -d    # Alle Services starten
+#
+# Architektur:
+#   Portal (nginx:80) ─┬─ /        → Portal SPA
+#                       ├─ /psa/    → PSA-Frontend (nginx → PostgREST)
+#                       ├─ /food/   → FoodBot (Flask/Gunicorn)
+#                       └─ /fk/     → Führerscheinkontrolle (Next.js)
+#
+#   Alle Services teilen sich die PostgreSQL-Instanz (Schemas: fw_common,
+#   fw_psa, fw_food, fw_fuehrerschein) und das fw-network.
+#
+# Verzeichnisstruktur (erwartet):
+#   ~/Documents/
+#   ├── portal/              ← dieses Repo (docker-compose.yml hier)
+#   ├── psa/                 ← PSA-Verwaltung
+#   ├── FoodBot/             ← FoodBot
+#   └── Führerscheinkontrolle/
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Portal (Reverse-Proxy + Landingpage) ──────────────────────────────────
+  portal:
+    build:
+      context: .
+    container_name: fw_portal
+    ports:
+      - "${PORTAL_PORT:-8180}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
+      - ./config.js:/usr/share/nginx/html/config.js:ro
+    depends_on:
+      psa-frontend:
+        condition: service_healthy
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+  # ── PostgreSQL (gemeinsame Datenbank) ─────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: fw_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nocodb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-nocodb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nocodb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+  # ── PostgREST (REST API für PSA) ──────────────────────────────────────────
+  postgrest:
+    image: postgrest/postgrest:v14.5
+    container_name: fw_postgrest
+    environment:
+      PGRST_DB_URI: "postgresql://psa_auth:${POSTGREST_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
+      PGRST_DB_SCHEMAS: "fw_common,fw_psa"
+      PGRST_DB_ANON_ROLE: "psa_anon"
+      PGRST_SERVER_PORT: "3000"
+      PGRST_DB_POOL: "5"
+      PGRST_JWT_SECRET: "${JWT_SECRET}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+  # ── PSA-Frontend (Schutzausrüstungs-Verwaltung) ──────────────────────────
+  psa-frontend:
+    build:
+      context: ../psa/frontend
+    container_name: fw_psa
+    volumes:
+      - ../psa/setup/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
+      - ../psa/setup/nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
+      - ../psa/frontend/config.js:/usr/share/nginx/html/config.js:ro
+    depends_on:
+      postgrest:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+  # ── FoodBot (Essensbestellung — Flask) ────────────────────────────────────
+  # Wird in Schritt 2 aktiviert. Vorerst auskommentiert.
+  # foodbot:
+  #   build:
+  #     context: ../FoodBot
+  #   container_name: fw_foodbot
+  #   environment:
+  #     DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
+  #     JWT_SECRET: "${JWT_SECRET}"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - fw-network
+  #   restart: unless-stopped
+
+  # ── Führerscheinkontrolle (Next.js) ───────────────────────────────────────
+  # Wird in Schritt 3 aktiviert. Vorerst auskommentiert.
+  # fuehrerschein:
+  #   build:
+  #     context: ../Führerscheinkontrolle
+  #   container_name: fw_fuehrerschein
+  #   environment:
+  #     DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
+  #     JWT_SECRET: "${JWT_SECRET}"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - fw-network
+  #   restart: unless-stopped
+
+  # ── Uptime Kuma (Monitoring) ──────────────────────────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: fw_uptime
+    volumes:
+      - uptime_data:/app/data
+    ports:
+      - "${UPTIME_PORT:-3001}:3001"
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+networks:
+  fw-network:
+    name: fw-network
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uptime_data:

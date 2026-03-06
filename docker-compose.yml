@@ -124,20 +124,36 @@ services:
     restart: unless-stopped
 
   # ── Führerscheinkontrolle (Next.js) ───────────────────────────────────────
-  # Wird in Schritt 3 aktiviert. Vorerst auskommentiert.
-  # fuehrerschein:
-  #   build:
-  #     context: ../Führerscheinkontrolle
-  #   container_name: fw_fuehrerschein
-  #   environment:
-  #     DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
-  #     JWT_SECRET: "${JWT_SECRET}"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - fw-network
-  #   restart: unless-stopped
+  fuehrerschein:
+    build:
+      context: ../Führerscheinkontrolle
+    container_name: fw_fuehrerschein
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
+      AUTH_SECRET: "${FK_AUTH_SECRET}"
+      NEXTAUTH_URL: "${FK_NEXTAUTH_URL:-http://localhost:8180/fk}"
+      ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
+      UPLOAD_DIR: "/app/data/uploads"
+      BACKUP_API_KEY: "${FK_BACKUP_API_KEY:-}"
+    volumes:
+      - fk_uploads:/app/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - fw-network
+    restart: unless-stopped
 
   # ── Uptime Kuma (Monitoring) ──────────────────────────────────────────────
   uptime-kuma:
@@ -159,3 +175,4 @@ networks:
 volumes:
   postgres_data:
   uptime_data:
+  fk_uploads:

@@ -121,23 +121,18 @@ services:
       - fw-network
     restart: unless-stopped
 
-  # ── FoodBot (Essensbestellung — Flask) ────────────────────────────────────
+  # ── FoodBot (Essensbestellung — Flask + SQLite) ───────────────────────────
   foodbot:
     build:
       context: ../FoodBot
     container_name: fw_foodbot
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
-      JWT_SECRET: "${JWT_SECRET}"
-      ADMIN_PASSWORD: "${FOODBOT_ADMIN_PASSWORD}"
-      FLASK_ENV: "production"
-      SECRET_KEY: "${FOODBOT_SECRET_KEY}"
+      SECRET_KEY: "${FOODBOT_SECRET_KEY:-changeme}"
       APPLICATION_ROOT: "/food"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    volumes:
+      - foodbot_data:/app/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/api/status')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/')"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -146,31 +141,21 @@ services:
       - fw-network
     restart: unless-stopped
 
-  # ── Führerscheinkontrolle (Next.js) ───────────────────────────────────────
+  # ── Führerscheinkontrolle (Next.js + SQLite) ─────────────────────────────
   fuehrerschein:
     build:
       context: ../FK-App
     container_name: fw_fuehrerschein
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
-      AUTH_SECRET: "${FK_AUTH_SECRET}"
+      PROJECT_ROOT: "/app"
+      DATABASE_PATH: "/app/data/fuehrerscheinkontrolle.db"
+      AUTH_SECRET: "${FK_AUTH_SECRET:-changeme}"
       AUTH_URL: "http://localhost:3000"
-      JWT_SECRET: "${JWT_SECRET}"
-      ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY}"
-      SMTP_HOST: "${SMTP_HOST:-}"
-      SMTP_PORT: "${SMTP_PORT:-587}"
-      SMTP_USER: "${SMTP_USER:-}"
-      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
-      SMTP_FROM: "${SMTP_FROM:-}"
-      UPLOAD_DIR: "/app/data/uploads"
-      BACKUP_API_KEY: "${FK_BACKUP_API_KEY:-}"
+      NEXTAUTH_URL: "http://localhost:3000"
     volumes:
-      - fk_uploads:/app/data/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - fk_data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/fk/').then(r=>{process.exit(r.ok||r.status===307?0:1)}).catch(()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/').then(r=>{process.exit(r.ok||r.status===307?0:1)}).catch(()=>process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -201,4 +186,5 @@ volumes:
     external: true
     name: setup_postgres_data
   uptime_data:
-  fk_uploads:
+  foodbot_data:
+  fk_data:

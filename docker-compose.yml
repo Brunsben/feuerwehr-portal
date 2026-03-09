@@ -127,7 +127,8 @@ services:
       context: ../FoodBot
     container_name: fw_foodbot
     environment:
-      SECRET_KEY: "${FOODBOT_SECRET_KEY:-changeme}"
+      SECRET_KEY: "${FOODBOT_SECRET_KEY:-a]3kF9x!mQ7vR2pL8wN5jT0hY4cB6dA1eG}"
+      DATABASE_URI: "sqlite:////app/data/foodbot.db"
       APPLICATION_ROOT: "/food"
     volumes:
       - foodbot_data:/app/data

@@ -150,13 +150,11 @@ services:
     environment:
       PROJECT_ROOT: "/app"
       DATABASE_PATH: "/app/data/fuehrerscheinkontrolle.db"
-      AUTH_SECRET: "${FK_AUTH_SECRET:-changeme}"
-      AUTH_URL: "http://localhost:3000"
-      NEXTAUTH_URL: "http://localhost:3000"
+      JWT_SECRET: "${JWT_SECRET}"
     volumes:
       - fk_data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/').then(r=>{process.exit(r.ok||r.status===307?0:1)}).catch(()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/fk').then(r=>{process.exit(r.ok||r.status===307||r.status===308?0:1)}).catch(()=>process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3

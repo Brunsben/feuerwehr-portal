@@ -9,6 +9,16 @@ const PORT = 3002;
 const COOKIE_NAME = 'fw_jwt';
 const COOKIE_MAX_AGE = 28800; // 8 Stunden (passend zum JWT exp)
 
+// ── Rollen → App-Berechtigungen ───────────────────────────────────────────
+// Definiert welche Portal-Apps jede Rolle sehen/nutzen darf.
+// Wert = Anzeige-Label in der App-Kachel (z.B. "Admin", "Nur lesen").
+const ROLE_APP_MAP = {
+  Admin:      { psa: 'Admin', food: 'Admin', fk: 'Admin' },
+  Gerätewart: { psa: 'Verwalter', fk: 'Prüfer' },
+  Maschinist: { psa: 'Nur lesen', fk: 'Mitglied' },
+  User:       { psa: 'Nur lesen' },
+};
+
 // ── Hilfsfunktionen ───────────────────────────────────────────────────────
 
 function parseCookies(header) {
@@ -92,8 +102,11 @@ async function handleAuth(req, res, rpcPath) {
   const data = JSON.parse(result.body);
   const isHttps = req.headers['x-forwarded-proto'] === 'https';
   setCookie(res, data.token, isHttps);
-  // Token NICHT an Frontend zurückgeben — nur User-Info
-  res.end(JSON.stringify({ user: data.user }));
+  // Token NICHT an Frontend zurückgeben — nur User-Info + Berechtigungen
+  const rolle = data.user?.Rolle;
+  res.end(JSON.stringify({
+    user: { ...data.user, app_permissions: ROLE_APP_MAP[rolle] || {} }
+  }));
 }
 
 /** Session prüfen: JWT aus Cookie dekodieren → User-Info */
@@ -121,6 +134,7 @@ function handleMe(req, res) {
       Benutzername: payload.sub,
       Rolle: payload.app_role,
       KameradId: payload.kamerad_id,
+      app_permissions: ROLE_APP_MAP[payload.app_role] || {},
     }));
   } catch {
     clearCookie(res);
@@ -151,6 +165,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && req.url === '/me') {
+      return handleMe(req, res);
+    }
+
+    // Interner Verify-Endpoint: Sub-Apps validieren fw_jwt Cookie
+    // Gibt 200 + User-Info zurück wenn gültig, 401 wenn nicht
+    if (req.method === 'GET' && req.url === '/verify') {
       return handleMe(req, res);
     }
 

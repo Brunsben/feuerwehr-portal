@@ -105,20 +105,20 @@
         </div>
 
         <!-- Schnellzugriff-Links -->
-        <div class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
+        <div v-if="visibleApps.length > 0" class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
           <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Schnellzugriff</h3>
           <div class="flex flex-wrap gap-3">
-            <a href="/psa/#warnungen"
+            <a v-if="appPermissions['psa']" href="/psa/#warnungen"
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
               <i class="ph ph-warning text-lg text-red-500"></i>
               PSA Warnungen
             </a>
-            <a href="/psa/#statistiken"
+            <a v-if="appPermissions['psa']" href="/psa/#statistiken"
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
               <i class="ph ph-chart-bar text-lg text-blue-500"></i>
               PSA Statistiken
             </a>
-            <a href="/psa/#kameraden"
+            <a v-if="appPermissions['psa']" href="/psa/#kameraden"
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
               <i class="ph ph-users text-lg text-emerald-500"></i>
               Kameraden

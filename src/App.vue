@@ -153,54 +153,33 @@ interface PortalUser {
   app_permissions?: Record<string, string>
 }
 
-interface JwtPayload {
-  sub?: string
-  exp?: number
-  app_role?: string
-  kamerad_id?: number
-}
-
-// ── Auth ─────────────────────────────────────────────────────────────────
-// TODO: JWT aus localStorage in httpOnly Cookies migrieren (erfordert nginx + Backend-Änderungen)
-// LocalStorage ist XSS-anfällig. Langfristig sollte der Login-Endpunkt ein httpOnly Secure Cookie
-// setzen und das Frontend nur noch den Login-Status über einen /api/me-Endpunkt prüfen.
+// ── Auth (httpOnly-Cookie-basiert) ───────────────────────────────────────
+// JWT wird serverseitig als httpOnly-Cookie verwaltet (nicht im Frontend sichtbar).
+// Session-Status wird über /api/auth/me geprüft.
 const loggedIn = ref(false)
 const currentUser = ref<PortalUser | null>(null)
 const appPermissions = ref<Record<string, string>>({})
 
-function decodeJwt(token: string): JwtPayload | null {
+async function tryRestoreSession() {
   try {
-    return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-  } catch { return null }
+    const res = await fetch('/api/auth/me', { credentials: 'same-origin' })
+    if (!res.ok) return
+    const user: PortalUser = await res.json()
+    currentUser.value = user
+    appPermissions.value = user.app_permissions || {}
+    loggedIn.value = true
+  } catch { /* kein gültiges Cookie → bleibt ausgeloggt */ }
 }
 
-function tryRestoreSession() {
-  const token = localStorage.getItem('fw_jwt')
-  if (!token) return
-  const payload = decodeJwt(token)
-  if (!payload || (payload.exp && payload.exp < Date.now() / 1000)) {
-    localStorage.removeItem('fw_jwt')
-    localStorage.removeItem('fw_user')
-    return
-  }
-  const savedUser = (() => {
-    try { return JSON.parse(localStorage.getItem('fw_user') || '') } catch { return null }
-  })()
-  if (!savedUser) return
-  currentUser.value = savedUser
-  appPermissions.value = savedUser.app_permissions || {}
+function onLogin(user: PortalUser) {
+  currentUser.value = user
+  appPermissions.value = user.app_permissions || {}
   loggedIn.value = true
 }
 
-function onLogin(payload: { token: string; user: PortalUser }) {
-  localStorage.setItem('fw_jwt', payload.token)
-  localStorage.setItem('fw_user', JSON.stringify(payload.user))
-  currentUser.value = payload.user
-  appPermissions.value = payload.user.app_permissions || {}
-  loggedIn.value = true
-}
-
-function doLogout() {
+async function doLogout() {
+  try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }) } catch {}
+  // Alte localStorage-Reste aufräumen (einmalige Migration)
   localStorage.removeItem('fw_jwt')
   localStorage.removeItem('fw_user')
   currentUser.value = null
@@ -258,8 +237,8 @@ function checkAllHealth() {
 
 let healthInterval: ReturnType<typeof setInterval>
 
-onMounted(() => {
-  tryRestoreSession()
+onMounted(async () => {
+  await tryRestoreSession()
   updateClock()
   clockInterval = setInterval(updateClock, 30_000)
   checkAllHealth()

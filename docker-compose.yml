@@ -41,6 +41,25 @@ services:
     depends_on:
       psa-frontend:
         condition: service_healthy
+      auth-proxy:
+        condition: service_started
+    networks:
+      - fw-network
+    restart: unless-stopped
+
+  # ── Auth-Proxy (httpOnly-Cookie-basierte Portal-Authentifizierung) ────────
+  auth-proxy:
+    image: node:22-alpine
+    container_name: fw_auth
+    command: node /app/server.js
+    volumes:
+      - ./auth-proxy/server.js:/app/server.js:ro
+    environment:
+      POSTGREST_HOST: postgrest
+      POSTGREST_PORT: "3000"
+    depends_on:
+      postgrest:
+        condition: service_started
     networks:
       - fw-network
     restart: unless-stopped

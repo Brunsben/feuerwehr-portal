@@ -61,7 +61,7 @@
 import { ref, onMounted } from 'vue'
 
 const emit = defineEmits<{
-  (e: 'loggedIn', payload: { token: string; user: { Benutzername: string; Rolle: string; app_permissions?: Record<string, string> } }): void
+  (e: 'loggedIn', user: { Benutzername: string; Rolle: string; app_permissions?: Record<string, string> }): void
 }>()
 
 const config = window.PORTAL_CONFIG
@@ -72,10 +72,9 @@ const isSetup = ref(false)
 
 onMounted(async () => {
   try {
-    const r = await fetch('/psa/api/rpc/is_initialized', {
+    const r = await fetch('/api/auth/check-init', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: '{}',
     })
     if (r.ok) {
       const data = await r.json()
@@ -92,9 +91,10 @@ async function doLogin() {
   }
   loading.value = true
   try {
-    const r = await fetch('/psa/api/rpc/authenticate', {
+    const r = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ benutzername: form.value.username, pin: form.value.pin }),
     })
     if (!r.ok) {
@@ -102,7 +102,7 @@ async function doLogin() {
       throw new Error(err.message || 'Benutzername oder Passwort falsch')
     }
     const data = await r.json()
-    emit('loggedIn', { token: data.token, user: data.user })
+    emit('loggedIn', data.user)
   } catch (e: any) {
     error.value = e.message || 'Anmeldung fehlgeschlagen'
   } finally {
@@ -117,9 +117,10 @@ async function doSetup() {
   if (form.value.pin !== form.value.pinConfirm) { error.value = 'Passwörter stimmen nicht überein.'; return }
   loading.value = true
   try {
-    const r = await fetch('/psa/api/rpc/create_admin', {
+    const r = await fetch('/api/auth/setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({ benutzername: form.value.username, pin: form.value.pin }),
     })
     if (!r.ok) {
@@ -127,7 +128,7 @@ async function doSetup() {
       throw new Error(err.message || 'Einrichtung fehlgeschlagen')
     }
     const data = await r.json()
-    emit('loggedIn', { token: data.token, user: data.user })
+    emit('loggedIn', data.user)
   } catch (e: any) {
     error.value = e.message || 'Einrichtung fehlgeschlagen'
   } finally {

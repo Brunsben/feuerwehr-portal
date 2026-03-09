@@ -198,5 +198,7 @@ networks:
 
 volumes:
   postgres_data:
+    external: true
+    name: setup_postgres_data
   uptime_data:
   fk_uploads:

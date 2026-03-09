@@ -147,12 +147,28 @@ import LoginView from './components/LoginView.vue'
 // ── Config ──────────────────────────────────────────────────────────────
 const config = window.PORTAL_CONFIG
 
+interface PortalUser {
+  Benutzername: string
+  Rolle: string
+  app_permissions?: Record<string, string>
+}
+
+interface JwtPayload {
+  sub?: string
+  exp?: number
+  app_role?: string
+  kamerad_id?: number
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────────
+// TODO: JWT aus localStorage in httpOnly Cookies migrieren (erfordert nginx + Backend-Änderungen)
+// LocalStorage ist XSS-anfällig. Langfristig sollte der Login-Endpunkt ein httpOnly Secure Cookie
+// setzen und das Frontend nur noch den Login-Status über einen /api/me-Endpunkt prüfen.
 const loggedIn = ref(false)
-const currentUser = ref<any | null>(null)
+const currentUser = ref<PortalUser | null>(null)
 const appPermissions = ref<Record<string, string>>({})
 
-function decodeJwt(token: string): any | null {
+function decodeJwt(token: string): JwtPayload | null {
   try {
     return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
   } catch { return null }
@@ -176,7 +192,7 @@ function tryRestoreSession() {
   loggedIn.value = true
 }
 
-function onLogin(payload: { token: string; user: any }) {
+function onLogin(payload: { token: string; user: PortalUser }) {
   localStorage.setItem('fw_jwt', payload.token)
   localStorage.setItem('fw_user', JSON.stringify(payload.user))
   currentUser.value = payload.user
@@ -197,7 +213,7 @@ const visibleApps = computed(() => {
   const perms = appPermissions.value
   // Wenn keine Berechtigungen konfiguriert → alle Apps anzeigen
   if (Object.keys(perms).length === 0) return config.APPS
-  return config.APPS.filter((app: any) => !!perms[app.id])
+  return config.APPS.filter((app: AppConfig) => !!perms[app.id])
 })
 
 // ── Dark Mode ───────────────────────────────────────────────────────────

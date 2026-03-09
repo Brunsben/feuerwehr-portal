@@ -61,7 +61,7 @@
 import { ref, onMounted } from 'vue'
 
 const emit = defineEmits<{
-  (e: 'loggedIn', payload: { token: string; user: any }): void
+  (e: 'loggedIn', payload: { token: string; user: { Benutzername: string; Rolle: string; app_permissions?: Record<string, string> } }): void
 }>()
 
 const config = window.PORTAL_CONFIG

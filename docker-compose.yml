@@ -16,6 +16,9 @@
 #   fw_psa, fw_food, fw_fuehrerschein) und das fw-network.
 #
 # Verzeichnisstruktur (erwartet):
+#   Passe die relativen Pfade (../psa/, ../FoodBot/, ../Führerscheinkontrolle/)
+#   an dein lokales Layout an, oder nutze absolute Pfade / Git-Submodules.
+#
 #   ~/Documents/
 #   ├── portal/              ← dieses Repo (docker-compose.yml hier)
 #   ├── psa/                 ← PSA-Verwaltung

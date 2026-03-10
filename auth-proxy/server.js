@@ -6,7 +6,11 @@ const crypto = require('crypto');
 // ── Konfiguration ─────────────────────────────────────────────────────────
 const POSTGREST_HOST = process.env.POSTGREST_HOST || 'postgrest';
 const POSTGREST_PORT = parseInt(process.env.POSTGREST_PORT || '3000');
-const JWT_SECRET = process.env.JWT_SECRET || '';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET ist nicht gesetzt — Auth-Proxy verweigert Start');
+  process.exit(1);
+}
 const PORT = 3002;
 const COOKIE_NAME = 'fw_jwt';
 const COOKIE_MAX_AGE = 28800; // 8 Stunden (passend zum JWT exp)
@@ -128,7 +132,7 @@ function setCookie(res, token, isHttps) {
     `${COOKIE_NAME}=${token}`,
     'Path=/',
     'HttpOnly',
-    `SameSite=${isHttps ? 'None' : 'Strict'}`,
+    'SameSite=Lax',
     `Max-Age=${COOKIE_MAX_AGE}`,
   ];
   if (isHttps) parts.push('Secure');
@@ -136,9 +140,8 @@ function setCookie(res, token, isHttps) {
 }
 
 function clearCookie(res, isHttps) {
-  const sameSite = isHttps ? 'None' : 'Strict';
   const secure = isHttps ? '; Secure' : '';
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=${sameSite}${secure}; Max-Age=0`);
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=0`);
 }
 
 // ── Auth-Handler ──────────────────────────────────────────────────────────

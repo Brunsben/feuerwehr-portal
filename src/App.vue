@@ -244,11 +244,12 @@ const visibleApps = computed(() => {
 })
 
 // ── Dark Mode ───────────────────────────────────────────────────────────
-const darkMode = ref(localStorage.getItem('darkMode') === 'true')
+const darkMode = ref(document.documentElement.classList.contains('dark'))
 function toggleDark() {
   darkMode.value = !darkMode.value
-  localStorage.setItem('darkMode', String(darkMode.value))
   document.documentElement.classList.toggle('dark', darkMode.value)
+  localStorage.setItem('darkMode', String(darkMode.value))
+  document.cookie = `fw_theme=${darkMode.value ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`
 }
 
 // ── Uhr ─────────────────────────────────────────────────────────────────

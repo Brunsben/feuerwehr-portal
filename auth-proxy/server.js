@@ -110,7 +110,14 @@ function clearCookie(res, isHttps) {
 
 /** Login/Setup: Credentials → PostgREST → httpOnly-Cookie + User-Info */
 async function handleAuth(req, res, rpcPath) {
-  const body = await readBody(req);
+  let body = await readBody(req);
+  // Frontend sendet username/password — DB-Funktion erwartet benutzername/pin
+  if (rpcPath === '/rpc/authenticate') {
+    try {
+      const parsed = JSON.parse(body);
+      body = JSON.stringify({ benutzername: parsed.username, pin: parsed.password });
+    } catch { /* body bleibt unverändert */ }
+  }
   const result = await proxyToPostgREST(rpcPath, body);
 
   if (result.status !== 200) {

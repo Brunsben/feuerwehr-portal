@@ -130,9 +130,14 @@ services:
       SECRET_KEY: "${FOODBOT_SECRET_KEY:-a]3kF9x!mQ7vR2pL8wN5jT0hY4cB6dA1eG}"
       DATABASE_URI: "sqlite:////app/data/foodbot.db"
       ADMIN_PASSWORD: "${FOODBOT_ADMIN_PASSWORD:-feuerwehr2026}"
+      JWT_SECRET: "${JWT_SECRET}"
+      POSTGREST_URL: "http://postgrest:3000"
       APPLICATION_ROOT: "/food"
     volumes:
       - foodbot_data:/app/data
+    depends_on:
+      postgrest:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/')"]
       interval: 30s

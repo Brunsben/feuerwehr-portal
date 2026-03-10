@@ -174,7 +174,7 @@
       <footer class="py-6 text-center text-xs text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
         <p>{{ config.FEUERWEHR_NAME }} — Digitales Portal</p>
         <p class="mt-1">
-          <a href="https://github.com/BenBruns" target="_blank" class="hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+          <a href="https://github.com/Brunsben" target="_blank" class="hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
             Entwickelt von Benjamin Bruns
           </a>
         </p>

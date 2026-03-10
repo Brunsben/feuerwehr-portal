@@ -10,14 +10,32 @@ const COOKIE_NAME = 'fw_jwt';
 const COOKIE_MAX_AGE = 28800; // 8 Stunden (passend zum JWT exp)
 
 // ── Rollen → App-Berechtigungen ───────────────────────────────────────────
-// Definiert welche Portal-Apps jede Rolle sehen/nutzen darf.
-// Wert = Anzeige-Label in der App-Kachel (z.B. "Admin", "Nur lesen").
+// Fallback-Map für Benutzer ohne verknüpften Kamerad.
+// Wird nur genutzt wenn keine per-User App-Rollen im JWT/DB vorhanden.
 const ROLE_APP_MAP = {
   Admin:      { psa: 'Admin', food: 'Admin', fk: 'Admin' },
   Gerätewart: { psa: 'Verwalter', fk: 'Prüfer' },
   Maschinist: { psa: 'Nur lesen', fk: 'Mitglied' },
   User:       { psa: 'Nur lesen' },
 };
+
+/** Baut app_permissions aus per-User Rollen (bevorzugt) oder ROLE_APP_MAP (Fallback) */
+function buildAppPermissions(userOrPayload) {
+  const perms = {};
+  const psa = userOrPayload.psa_rolle;
+  const food = userOrPayload.food_rolle;
+  const fk = userOrPayload.fk_rolle;
+  // Wenn mindestens eine per-User Rolle gesetzt ist, diese verwenden
+  if (psa || food || fk) {
+    if (psa) perms.psa = psa;
+    if (food) perms.food = food;
+    if (fk) perms.fk = fk;
+    return perms;
+  }
+  // Fallback: globale Rolle → ROLE_APP_MAP
+  const rolle = userOrPayload.Rolle || userOrPayload.app_role;
+  return ROLE_APP_MAP[rolle] || {};
+}
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────────
 
@@ -105,9 +123,8 @@ async function handleAuth(req, res, rpcPath) {
   const isHttps = req.headers['x-forwarded-proto'] === 'https';
   setCookie(res, data.token, isHttps);
   // Token NICHT an Frontend zurückgeben — nur User-Info + Berechtigungen
-  const rolle = data.user?.Rolle;
   res.end(JSON.stringify({
-    user: { ...data.user, app_permissions: ROLE_APP_MAP[rolle] || {} }
+    user: { ...data.user, app_permissions: buildAppPermissions(data.user) }
   }));
 }
 
@@ -136,7 +153,7 @@ function handleMe(req, res) {
       Benutzername: payload.sub,
       Rolle: payload.app_role,
       KameradId: payload.kamerad_id,
-      app_permissions: ROLE_APP_MAP[payload.app_role] || {},
+      app_permissions: buildAppPermissions(payload),
     }));
   } catch {
     clearCookie(res, req.headers['x-forwarded-proto'] === 'https');

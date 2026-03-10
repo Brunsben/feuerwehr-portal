@@ -52,6 +52,7 @@
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Dienstgrad</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Email</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Personal-Nr.</th>
+              <th class="text-center px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Apps</th>
               <th class="text-center px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Status</th>
               <th v-if="isAdmin" class="text-right px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Aktionen</th>
             </tr>
@@ -65,6 +66,14 @@
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Dienstgrad || '—' }}</td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Email || '—' }}</td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Personalnummer || '—' }}</td>
+              <td class="px-4 py-3 text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <span v-if="k.psa_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" title="PSA">PSA</span>
+                  <span v-if="k.food_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" title="FoodBot">Food</span>
+                  <span v-if="k.fk_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" title="FK">FK</span>
+                  <span v-if="!k.psa_rolle && !k.food_rolle && !k.fk_rolle" class="text-xs text-gray-400">—</span>
+                </div>
+              </td>
               <td class="px-4 py-3 text-center">
                 <span :class="k.Aktiv
                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
@@ -99,6 +108,11 @@
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {{ k.Dienstgrad || 'Kein Dienstgrad' }}
               <span v-if="k.Personalnummer" class="ml-2">· Nr. {{ k.Personalnummer }}</span>
+            </div>
+            <div v-if="k.psa_rolle || k.food_rolle || k.fk_rolle" class="flex items-center gap-1 mt-1">
+              <span v-if="k.psa_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">PSA</span>
+              <span v-if="k.food_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Food</span>
+              <span v-if="k.fk_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">FK</span>
             </div>
           </div>
           <div class="flex items-center gap-2 ml-3">
@@ -239,6 +253,43 @@
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Mitglied ist aktiv</span>
             </label>
 
+            <!-- App-Berechtigungen -->
+            <fieldset>
+              <legend class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">App-Berechtigungen</legend>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <i class="ph ph-shield-check text-red-500 mr-1"></i>PSA-Verwaltung
+                  </label>
+                  <select v-model="form.psa_rolle"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Kein Zugriff</option>
+                    <option v-for="r in psaRollen" :key="r" :value="r">{{ r }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <i class="ph ph-fork-knife text-amber-500 mr-1"></i>Essensbestellung
+                  </label>
+                  <select v-model="form.food_rolle"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Kein Zugriff</option>
+                    <option v-for="r in foodRollen" :key="r" :value="r">{{ r }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <i class="ph ph-car text-blue-500 mr-1"></i>Führerscheinkontrolle
+                  </label>
+                  <select v-model="form.fk_rolle"
+                    class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Kein Zugriff</option>
+                    <option v-for="r in fkRollen" :key="r" :value="r">{{ r }}</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+
             <!-- Fehler im Formular -->
             <div v-if="formError" class="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
               {{ formError }}
@@ -333,6 +384,9 @@ interface Kamerad {
   Poloshirt_Groesse: string | null
   Fleece_Groesse: string | null
   Aktiv: boolean
+  psa_rolle: string | null
+  food_rolle: string | null
+  fk_rolle: string | null
 }
 
 type KameradForm = Omit<Kamerad, 'id'>
@@ -355,6 +409,10 @@ const dienstgrade = [
   'Abschnittsbrandmeister/in',
   'Kreisbrandmeister/in',
 ]
+
+const psaRollen = ['Admin', 'Verwalter', 'Nur lesen']
+const foodRollen = ['Admin', 'User']
+const fkRollen = ['Admin', 'Prüfer', 'Mitglied']
 
 // ── PostgREST API ───────────────────────────────────────────────────────
 const API = '/psa/api'
@@ -383,6 +441,7 @@ function emptyForm(): KameradForm {
     Jacke_Groesse: '', Hose_Groesse: '', Stiefel_Groesse: '',
     Handschuh_Groesse: '', Hemd_Groesse: '', Poloshirt_Groesse: '', Fleece_Groesse: '',
     Aktiv: true,
+    psa_rolle: '', food_rolle: '', fk_rolle: '',
   }
 }
 const form = ref<KameradForm>(emptyForm())
@@ -434,6 +493,9 @@ function buildPayload(): Record<string, unknown> {
     Poloshirt_Groesse: form.value.Poloshirt_Groesse || null,
     Fleece_Groesse:    form.value.Fleece_Groesse    || null,
     Aktiv:             form.value.Aktiv             ?? true,
+    psa_rolle:         form.value.psa_rolle         || null,
+    food_rolle:        form.value.food_rolle        || null,
+    fk_rolle:          form.value.fk_rolle          || null,
   }
 }
 
@@ -517,6 +579,9 @@ function openEdit(k: Kamerad) {
     Poloshirt_Groesse: k.Poloshirt_Groesse ?? '',
     Fleece_Groesse:    k.Fleece_Groesse    ?? '',
     Aktiv:             k.Aktiv             ?? true,
+    psa_rolle:         k.psa_rolle         ?? '',
+    food_rolle:        k.food_rolle        ?? '',
+    fk_rolle:          k.fk_rolle          ?? '',
   }
   formError.value = ''
   showForm.value = true

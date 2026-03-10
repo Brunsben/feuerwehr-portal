@@ -61,7 +61,10 @@
             <tr v-for="k in filteredKameraden" :key="k.id"
               class="border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
               <td class="px-4 py-3">
-                <div class="font-medium text-gray-900 dark:text-white">{{ k.Vorname }} {{ k.Name }}</div>
+                <div class="font-medium text-gray-900 dark:text-white">
+                  {{ k.Vorname }} {{ k.Name }}
+                  <i v-if="isAdmin && hasLogin(k.id)" class="ph ph-key text-xs text-gray-400 ml-1" title="Hat Login-Account"></i>
+                </div>
               </td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Dienstgrad || '—' }}</td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Email || '—' }}</td>
@@ -104,7 +107,10 @@
         <div v-for="k in filteredKameraden" :key="'m-'+k.id"
           class="p-4 flex items-center justify-between">
           <div class="min-w-0 flex-1">
-            <div class="font-medium text-gray-900 dark:text-white truncate">{{ k.Vorname }} {{ k.Name }}</div>
+            <div class="font-medium text-gray-900 dark:text-white truncate">
+              {{ k.Vorname }} {{ k.Name }}
+              <i v-if="isAdmin && hasLogin(k.id)" class="ph ph-key text-xs text-gray-400 ml-1" title="Hat Login-Account"></i>
+            </div>
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {{ k.Dienstgrad || 'Kein Dienstgrad' }}
               <span v-if="k.Personalnummer" class="ml-2">· Nr. {{ k.Personalnummer }}</span>
@@ -290,6 +296,55 @@
               </div>
             </fieldset>
 
+            <!-- Login-Account -->
+            <fieldset>
+              <legend class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">Login-Account</legend>
+              <div v-if="linkedBenutzer" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Benutzername</label>
+                    <input v-model="benutzerForm.Benutzername" type="text" placeholder="max.mustermann"
+                      class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      {{ linkedBenutzer.Id ? 'Neues Passwort (leer = unverändert)' : 'Passwort *' }}
+                    </label>
+                    <input v-model="benutzerForm.PIN" type="password" placeholder="••••••"
+                      class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Portal-Rolle</label>
+                    <select v-model="benutzerForm.Rolle"
+                      class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                      <option value="Admin">Admin</option>
+                      <option value="Gerätewart">Gerätewart</option>
+                      <option value="Maschinist">Maschinist</option>
+                      <option value="User">User</option>
+                    </select>
+                  </div>
+                  <div class="flex items-end">
+                    <label class="flex items-center gap-2 cursor-pointer select-none pb-2">
+                      <input v-model="benutzerForm.Aktiv" type="checkbox"
+                        class="rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500 w-5 h-5" />
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Account aktiv</span>
+                    </label>
+                  </div>
+                </div>
+                <button v-if="linkedBenutzer.Id" @click="removeBenutzer" type="button"
+                  class="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium">
+                  <i class="ph ph-trash mr-1"></i>Login-Account entfernen
+                </button>
+              </div>
+              <div v-else class="flex items-center justify-between bg-gray-50 dark:bg-gray-700/30 rounded-lg px-4 py-3">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Kein Login-Account verknüpft</p>
+                <button @click="enableBenutzer" type="button"
+                  class="text-sm font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+                  <i class="ph ph-user-plus mr-1"></i>Account anlegen
+                </button>
+              </div>
+            </fieldset>
+
             <!-- Fehler im Formular -->
             <div v-if="formError" class="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
               {{ formError }}
@@ -391,6 +446,21 @@ interface Kamerad {
 
 type KameradForm = Omit<Kamerad, 'id'>
 
+interface Benutzer {
+  Id: number
+  Benutzername: string
+  Rolle: string
+  KameradId: number | null
+  Aktiv: boolean
+}
+
+interface BenutzerForm {
+  Benutzername: string
+  PIN: string
+  Rolle: string
+  Aktiv: boolean
+}
+
 // ── Dienstgrade (FwVO Niedersachsen) ────────────────────────────────────
 const dienstgrade = [
   'Feuerwehrmannanwärter/in',
@@ -445,6 +515,54 @@ function emptyForm(): KameradForm {
   }
 }
 const form = ref<KameradForm>(emptyForm())
+
+// ── Benutzer-State ──────────────────────────────────────────────────────
+const benutzerList = ref<Benutzer[]>([])
+const benutzerForm = ref<BenutzerForm>({ Benutzername: '', PIN: '', Rolle: 'User', Aktiv: true })
+const benutzerEnabled = ref(false)   // true = Benutzer-Section im Form sichtbar
+const benutzerExistingId = ref<number | null>(null)  // Id des verknüpften Benutzer-Datensatzes
+
+const linkedBenutzer = computed(() => {
+  if (!showForm.value || !benutzerEnabled.value) return null
+  return { Id: benutzerExistingId.value }
+})
+
+function enableBenutzer() {
+  benutzerForm.value = { Benutzername: '', PIN: '', Rolle: 'User', Aktiv: true }
+  benutzerExistingId.value = null
+  benutzerEnabled.value = true
+}
+
+async function removeBenutzer() {
+  if (!benutzerExistingId.value) {
+    benutzerEnabled.value = false
+    return
+  }
+  try {
+    const res = await fetch(`${API}/Benutzer?Id=eq.${benutzerExistingId.value}`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    showToast('Login-Account entfernt', 'success')
+    benutzerEnabled.value = false
+    benutzerExistingId.value = null
+    await loadBenutzer()
+  } catch (e: any) {
+    showToast(`Löschen fehlgeschlagen: ${e.message}`, 'error')
+  }
+}
+
+async function loadBenutzer() {
+  try {
+    const res = await fetch('/api/auth/benutzer', { credentials: 'same-origin' })
+    if (res.ok) benutzerList.value = await res.json()
+  } catch { /* ignorieren, nur Admin kann Benutzer sehen */ }
+}
+
+function hasLogin(kameradId: number): boolean {
+  return benutzerList.value.some((b: Benutzer) => b.KameradId === kameradId)
+}
 
 // ── Computed ────────────────────────────────────────────────────────────
 const filteredKameraden = computed(() => {
@@ -505,6 +623,14 @@ async function saveKamerad() {
     formError.value = '"Vorname" und "Name" sind Pflichtfelder.'
     return
   }
+  if (benutzerEnabled.value && !benutzerExistingId.value && !benutzerForm.value.PIN) {
+    formError.value = 'Bitte ein Passwort für den neuen Login-Account vergeben.'
+    return
+  }
+  if (benutzerEnabled.value && !benutzerForm.value.Benutzername?.trim()) {
+    formError.value = 'Bitte einen Benutzernamen eingeben.'
+    return
+  }
   saving.value = true
   try {
     const payload = buildPayload()
@@ -525,9 +651,42 @@ async function saveKamerad() {
       const err = await res.json().catch(() => ({})) as { message?: string; details?: string }
       throw new Error(err.message || err.details || `HTTP ${res.status}`)
     }
+
+    // Kamerad-Id ermitteln (für neue Kameraden aus der Antwort)
+    const saved = await res.json() as Kamerad[]
+    const kameradId = isEdit ? editId.value! : saved[0]?.id
+
+    // ── Benutzer-Account speichern ──
+    if (benutzerEnabled.value && kameradId) {
+      const bPayload: Record<string, unknown> = {
+        Benutzername: benutzerForm.value.Benutzername.trim(),
+        Rolle: benutzerForm.value.Rolle,
+        KameradId: kameradId,
+        Aktiv: benutzerForm.value.Aktiv,
+      }
+      if (benutzerForm.value.PIN) {
+        bPayload.PIN = benutzerForm.value.PIN
+      }
+      const bIsEdit = !!benutzerExistingId.value
+      const bUrl = bIsEdit
+        ? `${API}/Benutzer?Id=eq.${benutzerExistingId.value}`
+        : `${API}/Benutzer`
+      const bRes = await fetch(bUrl, {
+        method: bIsEdit ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        credentials: 'same-origin',
+        body: JSON.stringify(bPayload),
+      })
+      if (!bRes.ok) {
+        const bErr = await bRes.json().catch(() => ({})) as { message?: string; details?: string }
+        throw new Error(`Login-Account: ${bErr.message || bErr.details || `HTTP ${bRes.status}`}`)
+      }
+    }
+
     showToast(isEdit ? 'Mitglied aktualisiert' : 'Mitglied angelegt', 'success')
     closeForm()
     await loadKameraden()
+    await loadBenutzer()
   } catch (e: any) {
     formError.value = e.message || 'Speichern fehlgeschlagen'
   } finally {
@@ -559,6 +718,9 @@ function openCreate() {
   editId.value = null
   form.value = emptyForm()
   formError.value = ''
+  benutzerEnabled.value = false
+  benutzerExistingId.value = null
+  benutzerForm.value = { Benutzername: '', PIN: '', Rolle: 'User', Aktiv: true }
   showForm.value = true
 }
 
@@ -584,6 +746,22 @@ function openEdit(k: Kamerad) {
     fk_rolle:          k.fk_rolle          ?? '',
   }
   formError.value = ''
+  // Verknüpften Benutzer laden
+  const linked = benutzerList.value.find((b: Benutzer) => b.KameradId === k.id)
+  if (linked) {
+    benutzerEnabled.value = true
+    benutzerExistingId.value = linked.Id
+    benutzerForm.value = {
+      Benutzername: linked.Benutzername,
+      PIN: '',
+      Rolle: linked.Rolle,
+      Aktiv: linked.Aktiv,
+    }
+  } else {
+    benutzerEnabled.value = false
+    benutzerExistingId.value = null
+    benutzerForm.value = { Benutzername: '', PIN: '', Rolle: 'User', Aktiv: true }
+  }
   showForm.value = true
 }
 
@@ -591,6 +769,8 @@ function closeForm() {
   showForm.value = false
   editId.value = null
   formError.value = ''
+  benutzerEnabled.value = false
+  benutzerExistingId.value = null
 }
 
 function confirmDelete(k: Kamerad) {
@@ -604,5 +784,8 @@ function showToast(message: string, type: 'success' | 'error') {
 }
 
 // ── Lifecycle ───────────────────────────────────────────────────────────
-onMounted(loadKameraden)
+onMounted(() => {
+  loadKameraden()
+  if (props.isAdmin) loadBenutzer()
+})
 </script>

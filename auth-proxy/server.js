@@ -1,10 +1,12 @@
 'use strict';
 
 const http = require('http');
+const crypto = require('crypto');
 
 // ── Konfiguration ─────────────────────────────────────────────────────────
 const POSTGREST_HOST = process.env.POSTGREST_HOST || 'postgrest';
 const POSTGREST_PORT = parseInt(process.env.POSTGREST_PORT || '3000');
+const JWT_SECRET = process.env.JWT_SECRET || '';
 const PORT = 3002;
 const COOKIE_NAME = 'fw_jwt';
 const COOKIE_MAX_AGE = 28800; // 8 Stunden (passend zum JWT exp)
@@ -62,6 +64,14 @@ function readBody(req) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString()));
     req.on('error', reject);
   });
+}
+
+// ── JWT-Signing (HMAC-SHA256) ─────────────────────────────────────────────
+function signJwt(payload) {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${body}`).digest('base64url');
+  return `${header}.${body}.${sig}`;
 }
 
 function proxyToPostgREST(path, body) {
@@ -171,6 +181,94 @@ function handleMe(req, res) {
 
 // ── HTTP-Server ───────────────────────────────────────────────────────────
 
+/** GET-Proxy für PostgREST (verwendet Service-JWT) */
+function getFromPostgREST(path) {
+  const serviceToken = signJwt({
+    role: 'psa_user',
+    app_role: 'Admin',
+    exp: Math.floor(Date.now() / 1000) + 60,
+  });
+  return new Promise((resolve, reject) => {
+    const proxyReq = http.request({
+      hostname: POSTGREST_HOST,
+      port: POSTGREST_PORT,
+      path: path,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${serviceToken}`,
+        'Accept': 'application/json',
+      },
+    }, proxyRes => {
+      const chunks = [];
+      proxyRes.on('data', c => chunks.push(c));
+      proxyRes.on('end', () => resolve({
+        status: proxyRes.statusCode,
+        body: Buffer.concat(chunks).toString(),
+      }));
+    });
+    proxyReq.on('error', reject);
+    proxyReq.end();
+  });
+}
+
+/** Kameraden-Liste: Authentifizierter Zugriff auf zentrale Mitgliederdaten */
+async function handleKameraden(req, res) {
+  // JWT aus Cookie prüfen
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies[COOKIE_NAME];
+  if (!token) {
+    res.statusCode = 401;
+    res.end('{"error":"not_authenticated"}');
+    return;
+  }
+  try {
+    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      res.statusCode = 401;
+      res.end('{"error":"token_expired"}');
+      return;
+    }
+    // Service-JWT für PostgREST-Abfrage verwenden (umgeht RLS-Einschränkungen)
+    const result = await getFromPostgREST('/Kameraden?Aktiv=eq.true&order=Name.asc,Vorname.asc');
+    res.statusCode = result.status;
+    res.end(result.body);
+  } catch {
+    res.statusCode = 500;
+    res.end('{"error":"internal_error"}');
+  }
+}
+
+/** Benutzer-Liste: Nur für Admins */
+async function handleBenutzer(req, res) {
+  const cookies = parseCookies(req.headers.cookie);
+  const token = cookies[COOKIE_NAME];
+  if (!token) {
+    res.statusCode = 401;
+    res.end('{"error":"not_authenticated"}');
+    return;
+  }
+  try {
+    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      res.statusCode = 401;
+      res.end('{"error":"token_expired"}');
+      return;
+    }
+    // Nur Portal-Admins dürfen Benutzer sehen
+    if (payload.app_role !== 'Admin') {
+      res.statusCode = 403;
+      res.end('{"error":"forbidden"}');
+      return;
+    }
+    const result = await getFromPostgREST('/Benutzer?order=Benutzername.asc&select=Id,Benutzername,Rolle,KameradId,Aktiv');
+    res.statusCode = result.status;
+    res.end(result.body);
+  } catch {
+    res.statusCode = 500;
+    res.end('{"error":"internal_error"}');
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
 
@@ -198,6 +296,16 @@ const server = http.createServer(async (req, res) => {
     // Gibt 200 + User-Info zurück wenn gültig, 401 wenn nicht
     if (req.method === 'GET' && req.url === '/verify') {
       return handleMe(req, res);
+    }
+
+    // Kameraden-API: Zentrale Mitgliederliste für alle Sub-Apps
+    if (req.method === 'GET' && req.url === '/kameraden') {
+      return await handleKameraden(req, res);
+    }
+
+    // Benutzer-API: Login-Accounts (nur Admins)
+    if (req.method === 'GET' && req.url === '/benutzer') {
+      return await handleBenutzer(req, res);
     }
 
     if (req.method === 'POST' && req.url === '/logout') {

@@ -56,6 +56,7 @@ services:
     environment:
       POSTGREST_HOST: postgrest
       POSTGREST_PORT: "3000"
+      JWT_SECRET: "${JWT_SECRET}"
     depends_on:
       postgrest:
         condition: service_started
@@ -157,6 +158,7 @@ services:
       PROJECT_ROOT: "/app"
       DATABASE_PATH: "/app/data/fuehrerscheinkontrolle.db"
       JWT_SECRET: "${JWT_SECRET}"
+      AUTH_PROXY_URL: "http://auth-proxy:3002"
     volumes:
       - fk_data:/app/data
     healthcheck:

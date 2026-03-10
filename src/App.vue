@@ -99,7 +99,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           <a v-for="app in visibleApps" :key="app.id"
             :href="app.path"
-            class="app-card group block bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+            class="app-card group block bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
 
             <!-- Farbiger Header-Stripe -->
             <div :class="headerClass(app.color)" class="h-1.5"></div>

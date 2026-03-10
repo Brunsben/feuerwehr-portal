@@ -125,7 +125,10 @@ async function handleAuth(req, res, rpcPath) {
   if (rpcPath === '/rpc/authenticate') {
     try {
       const parsed = JSON.parse(body);
-      body = JSON.stringify({ benutzername: parsed.username, pin: parsed.password });
+      body = JSON.stringify({
+        benutzername: parsed.benutzername || parsed.username,
+        pin: parsed.pin || parsed.password,
+      });
     } catch { /* body bleibt unverändert */ }
   }
   const result = await proxyToPostgREST(rpcPath, body);

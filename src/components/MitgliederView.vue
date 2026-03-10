@@ -52,6 +52,7 @@
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Dienstgrad</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Email</th>
               <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Personal-Nr.</th>
+              <th class="text-left px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Karten-ID</th>
               <th class="text-center px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Apps</th>
               <th class="text-center px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Status</th>
               <th v-if="isAdmin" class="text-right px-4 py-3 font-semibold text-gray-600 dark:text-gray-400">Aktionen</th>
@@ -69,6 +70,7 @@
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Dienstgrad || '—' }}</td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Email || '—' }}</td>
               <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ k.Personalnummer || '—' }}</td>
+              <td class="px-4 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs">{{ k.KartenID || '—' }}</td>
               <td class="px-4 py-3 text-center">
                 <div class="flex items-center justify-center gap-1">
                   <span v-if="k.psa_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" title="PSA">PSA</span>
@@ -114,6 +116,7 @@
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {{ k.Dienstgrad || 'Kein Dienstgrad' }}
               <span v-if="k.Personalnummer" class="ml-2">· Nr. {{ k.Personalnummer }}</span>
+              <span v-if="k.KartenID" class="ml-2">· <i class="ph ph-credit-card"></i> {{ k.KartenID }}</span>
             </div>
             <div v-if="k.psa_rolle || k.food_rolle || k.fk_rolle" class="flex items-center gap-1 mt-1">
               <span v-if="k.psa_rolle" class="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">PSA</span>

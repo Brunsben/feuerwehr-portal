@@ -14,6 +14,7 @@ if (!JWT_SECRET) {
 const PORT = 3002;
 const COOKIE_NAME = 'fw_jwt';
 const COOKIE_MAX_AGE = 28800; // 8 Stunden (passend zum JWT exp)
+const FEUERWEHR_NAME = process.env.FEUERWEHR_NAME || 'Feuerwehr';
 
 // ── Rollen → App-Berechtigungen ───────────────────────────────────────────
 // Fallback-Map für Benutzer ohne verknüpften Kamerad.
@@ -317,6 +318,12 @@ const server = http.createServer(async (req, res) => {
     // Gibt 200 + User-Info zurück wenn gültig, 401 wenn nicht
     if (req.method === 'GET' && req.url === '/verify') {
       return handleMe(req, res);
+    }
+
+    // Öffentlicher Config-Endpoint: Zentrale Konfiguration für alle Sub-Apps
+    if (req.method === 'GET' && req.url === '/config') {
+      res.end(JSON.stringify({ feuerwehrName: FEUERWEHR_NAME }));
+      return;
     }
 
     // Kameraden-API: Zentrale Mitgliederliste für alle Sub-Apps

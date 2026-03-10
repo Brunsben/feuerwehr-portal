@@ -7,6 +7,9 @@
   "background_color": "#f3f4f6",
   "theme_color": "#dc2626",
   "scope": "/",
+  "orientation": "any",
+  "lang": "de",
+  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "/favicon.svg",

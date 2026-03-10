@@ -74,6 +74,23 @@ function signJwt(payload) {
   return `${header}.${body}.${sig}`;
 }
 
+/** JWT verifizieren: Signatur + Ablauf prüfen. Gibt Payload oder null zurück. */
+function verifyJwt(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const sig = crypto.createHmac('sha256', JWT_SECRET)
+      .update(`${parts[0]}.${parts[1]}`).digest('base64url');
+    if (sig.length !== parts[2].length) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(parts[2]))) return null;
+    const payload = JSON.parse(base64UrlDecode(parts[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 function proxyToPostgREST(path, body) {
   return new Promise((resolve, reject) => {
     const proxyReq = http.request({
@@ -148,7 +165,7 @@ async function handleAuth(req, res, rpcPath) {
   }));
 }
 
-/** Session prüfen: JWT aus Cookie dekodieren → User-Info */
+/** Session prüfen: JWT aus Cookie verifizieren → User-Info */
 function handleMe(req, res) {
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies[COOKIE_NAME];
@@ -159,27 +176,20 @@ function handleMe(req, res) {
     return;
   }
 
-  try {
-    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
-
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      clearCookie(res, req.headers['x-forwarded-proto'] === 'https');
-      res.statusCode = 401;
-      res.end('{"error":"token_expired"}');
-      return;
-    }
-
-    res.end(JSON.stringify({
-      Benutzername: payload.sub,
-      Rolle: payload.app_role,
-      KameradId: payload.kamerad_id,
-      app_permissions: buildAppPermissions(payload),
-    }));
-  } catch {
+  const payload = verifyJwt(token);
+  if (!payload) {
     clearCookie(res, req.headers['x-forwarded-proto'] === 'https');
     res.statusCode = 401;
     res.end('{"error":"invalid_token"}');
+    return;
   }
+
+  res.end(JSON.stringify({
+    Benutzername: payload.sub,
+    Rolle: payload.app_role,
+    KameradId: payload.kamerad_id,
+    app_permissions: buildAppPermissions(payload),
+  }));
 }
 
 // ── HTTP-Server ───────────────────────────────────────────────────────────
@@ -216,7 +226,6 @@ function getFromPostgREST(path) {
 
 /** Kameraden-Liste: Authentifizierter Zugriff auf zentrale Mitgliederdaten */
 async function handleKameraden(req, res) {
-  // JWT aus Cookie prüfen
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies[COOKIE_NAME];
   if (!token) {
@@ -224,14 +233,13 @@ async function handleKameraden(req, res) {
     res.end('{"error":"not_authenticated"}');
     return;
   }
+  const payload = verifyJwt(token);
+  if (!payload) {
+    res.statusCode = 401;
+    res.end('{"error":"invalid_token"}');
+    return;
+  }
   try {
-    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      res.statusCode = 401;
-      res.end('{"error":"token_expired"}');
-      return;
-    }
-    // Service-JWT für PostgREST-Abfrage verwenden (umgeht RLS-Einschränkungen)
     const result = await getFromPostgREST('/Kameraden?Aktiv=eq.true&order=Name.asc,Vorname.asc');
     res.statusCode = result.status;
     res.end(result.body);
@@ -250,19 +258,18 @@ async function handleBenutzer(req, res) {
     res.end('{"error":"not_authenticated"}');
     return;
   }
+  const payload = verifyJwt(token);
+  if (!payload) {
+    res.statusCode = 401;
+    res.end('{"error":"invalid_token"}');
+    return;
+  }
+  if (payload.app_role !== 'Admin') {
+    res.statusCode = 403;
+    res.end('{"error":"forbidden"}');
+    return;
+  }
   try {
-    const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      res.statusCode = 401;
-      res.end('{"error":"token_expired"}');
-      return;
-    }
-    // Nur Portal-Admins dürfen Benutzer sehen
-    if (payload.app_role !== 'Admin') {
-      res.statusCode = 403;
-      res.end('{"error":"forbidden"}');
-      return;
-    }
     const result = await getFromPostgREST('/Benutzer?order=Benutzername.asc&select=id,Benutzername,Rolle,KameradId,Aktiv');
     res.statusCode = result.status;
     res.end(result.body);

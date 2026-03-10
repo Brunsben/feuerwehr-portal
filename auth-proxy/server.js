@@ -75,15 +75,17 @@ function setCookie(res, token, isHttps) {
     `${COOKIE_NAME}=${token}`,
     'Path=/',
     'HttpOnly',
-    'SameSite=Strict',
+    `SameSite=${isHttps ? 'None' : 'Strict'}`,
     `Max-Age=${COOKIE_MAX_AGE}`,
   ];
   if (isHttps) parts.push('Secure');
   res.setHeader('Set-Cookie', parts.join('; '));
 }
 
-function clearCookie(res) {
-  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
+function clearCookie(res, isHttps) {
+  const sameSite = isHttps ? 'None' : 'Strict';
+  const secure = isHttps ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=${sameSite}${secure}; Max-Age=0`);
 }
 
 // ── Auth-Handler ──────────────────────────────────────────────────────────
@@ -124,7 +126,7 @@ function handleMe(req, res) {
     const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
 
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      clearCookie(res);
+      clearCookie(res, req.headers['x-forwarded-proto'] === 'https');
       res.statusCode = 401;
       res.end('{"error":"token_expired"}');
       return;
@@ -137,7 +139,7 @@ function handleMe(req, res) {
       app_permissions: ROLE_APP_MAP[payload.app_role] || {},
     }));
   } catch {
-    clearCookie(res);
+    clearCookie(res, req.headers['x-forwarded-proto'] === 'https');
     res.statusCode = 401;
     res.end('{"error":"invalid_token"}');
   }
@@ -175,7 +177,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && req.url === '/logout') {
-      clearCookie(res);
+      clearCookie(res, req.headers['x-forwarded-proto'] === 'https');
       res.end('{"ok":true}');
       return;
     }

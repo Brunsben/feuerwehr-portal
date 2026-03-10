@@ -260,7 +260,7 @@ async function handleBenutzer(req, res) {
       res.end('{"error":"forbidden"}');
       return;
     }
-    const result = await getFromPostgREST('/Benutzer?order=Benutzername.asc&select=Id,Benutzername,Rolle,KameradId,Aktiv');
+    const result = await getFromPostgREST('/Benutzer?order=Benutzername.asc&select=id,Benutzername,Rolle,KameradId,Aktiv');
     res.statusCode = result.status;
     res.end(result.body);
   } catch {

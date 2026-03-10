@@ -308,7 +308,7 @@
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {{ linkedBenutzer.Id ? 'Neues Passwort (leer = unverändert)' : 'Passwort *' }}
+                      {{ linkedBenutzer.id ? 'Neues Passwort (leer = unverändert)' : 'Passwort *' }}
                     </label>
                     <input v-model="benutzerForm.PIN" type="password" placeholder="••••••"
                       class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
@@ -331,7 +331,7 @@
                     </label>
                   </div>
                 </div>
-                <button v-if="linkedBenutzer.Id" @click="removeBenutzer" type="button"
+                <button v-if="linkedBenutzer.id" @click="removeBenutzer" type="button"
                   class="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium">
                   <i class="ph ph-trash mr-1"></i>Login-Account entfernen
                 </button>
@@ -447,7 +447,7 @@ interface Kamerad {
 type KameradForm = Omit<Kamerad, 'id'>
 
 interface Benutzer {
-  Id: number
+  id: number
   Benutzername: string
   Rolle: string
   KameradId: number | null
@@ -524,7 +524,7 @@ const benutzerExistingId = ref<number | null>(null)  // Id des verknüpften Benu
 
 const linkedBenutzer = computed(() => {
   if (!showForm.value || !benutzerEnabled.value) return null
-  return { Id: benutzerExistingId.value }
+  return { id: benutzerExistingId.value }
 })
 
 function enableBenutzer() {
@@ -539,7 +539,7 @@ async function removeBenutzer() {
     return
   }
   try {
-    const res = await fetch(`${API}/Benutzer?Id=eq.${benutzerExistingId.value}`, {
+    const res = await fetch(`${API}/Benutzer?id=eq.${benutzerExistingId.value}`, {
       method: 'DELETE',
       credentials: 'same-origin',
     })
@@ -669,7 +669,7 @@ async function saveKamerad() {
       }
       const bIsEdit = !!benutzerExistingId.value
       const bUrl = bIsEdit
-        ? `${API}/Benutzer?Id=eq.${benutzerExistingId.value}`
+        ? `${API}/Benutzer?id=eq.${benutzerExistingId.value}`
         : `${API}/Benutzer`
       const bRes = await fetch(bUrl, {
         method: bIsEdit ? 'PATCH' : 'POST',
@@ -750,7 +750,7 @@ function openEdit(k: Kamerad) {
   const linked = benutzerList.value.find((b: Benutzer) => b.KameradId === k.id)
   if (linked) {
     benutzerEnabled.value = true
-    benutzerExistingId.value = linked.Id
+    benutzerExistingId.value = linked.id
     benutzerForm.value = {
       Benutzername: linked.Benutzername,
       PIN: '',

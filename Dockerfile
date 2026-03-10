@@ -18,4 +18,5 @@ RUN npm run build
 # ── Stage 2: Serve ───────────────────────────────────────────────────────────
 FROM nginx:1.28-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY public/error-backend.html /usr/share/nginx/html/error-backend.html
 # nginx.conf + config.js werden per docker-compose Volume gemountet

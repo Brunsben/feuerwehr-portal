@@ -25,12 +25,20 @@
 #   └── FK-App/              ← Führerscheinkontrolle
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── Logging Default (schützt Pi-Disk vor Log-Explosion) ─────────────────────
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # ── Portal (Reverse-Proxy + Landingpage) ──────────────────────────────────
   portal:
     build:
       context: .
     container_name: fw_portal
+    logging: *default-logging
     ports:
       - "${PORTAL_PORT:-8180}:80"
     volumes:
@@ -48,8 +56,9 @@ services:
 
   # ── Auth-Proxy (httpOnly-Cookie-basierte Portal-Authentifizierung) ────────
   auth-proxy:
-    image: node:22-alpine
+    image: node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00
     container_name: fw_auth
+    logging: *default-logging
     command: node /app/server.js
     volumes:
       - ./auth-proxy/server.js:/app/server.js:ro
@@ -71,8 +80,9 @@ services:
 
   # ── PostgreSQL (gemeinsame Datenbank) ─────────────────────────────────────
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:6f30057d31f5861b66f3545d4821f987aacf1dd920765f0acadea0c58ff975b1
     container_name: fw_postgres
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-nocodb}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -90,8 +100,9 @@ services:
 
   # ── PostgREST (REST API für PSA) ──────────────────────────────────────────
   postgrest:
-    image: postgrest/postgrest:v14.5
+    image: postgrest/postgrest:v14.5@sha256:b574528fe109c8343c1247155734d03df8c34b462f342dca0ccc20244fc36ef9
     container_name: fw_postgrest
+    logging: *default-logging
     environment:
       PGRST_DB_URI: "postgresql://psa_auth:${POSTGREST_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
       PGRST_DB_SCHEMAS: "pxicv3djlauluse"
@@ -111,6 +122,7 @@ services:
     build:
       context: ../psa-verwaltung/frontend
     container_name: fw_psa
+    logging: *default-logging
     volumes:
       - ../psa-verwaltung/setup/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
       - ../psa-verwaltung/setup/nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
@@ -132,6 +144,7 @@ services:
     build:
       context: ../FoodBot
     container_name: fw_foodbot
+    logging: *default-logging
     environment:
       SECRET_KEY: "${FOODBOT_SECRET_KEY:?FOODBOT_SECRET_KEY muss in .env gesetzt sein}"
       DATABASE_URI: "sqlite:////app/data/foodbot.db"
@@ -159,11 +172,14 @@ services:
     build:
       context: ../FK-App
     container_name: fw_fuehrerschein
+    logging: *default-logging
     environment:
       PROJECT_ROOT: "/app"
       DATABASE_PATH: "/app/data/fuehrerscheinkontrolle.db"
       JWT_SECRET: "${JWT_SECRET}"
       AUTH_PROXY_URL: "http://auth-proxy:3002"
+      ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY}"
+      BACKUP_API_KEY: "${FK_BACKUP_API_KEY}"
     volumes:
       - fk_data:/app/data
     healthcheck:
@@ -178,8 +194,9 @@ services:
 
   # ── Uptime Kuma (Monitoring) ──────────────────────────────────────────────
   uptime-kuma:
-    image: louislam/uptime-kuma:2
+    image: louislam/uptime-kuma:2@sha256:32c352a235fd10f98b3f64a6a4345d3c0c7f4e8be7810d2e1e867f7fe2e48ba2
     container_name: fw_uptime
+    logging: *default-logging
     volumes:
       - uptime_data:/app/data
     ports:

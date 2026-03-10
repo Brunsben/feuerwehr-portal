@@ -57,10 +57,18 @@ function base64UrlDecode(str) {
   return Buffer.from(str, 'base64').toString();
 }
 
-function readBody(req) {
+function readBody(req, maxSize = 100 * 1024) {
   return new Promise((resolve, reject) => {
+    let size = 0;
     const chunks = [];
-    req.on('data', c => chunks.push(c));
+    req.on('data', c => {
+      size += c.length;
+      if (size > maxSize) {
+        req.destroy();
+        return reject(new Error('Payload too large'));
+      }
+      chunks.push(c);
+    });
     req.on('end', () => resolve(Buffer.concat(chunks).toString()));
     req.on('error', reject);
   });
@@ -328,8 +336,13 @@ const server = http.createServer(async (req, res) => {
     res.end('{"error":"not_found"}');
   } catch (e) {
     console.error('Auth proxy error:', e.message);
-    res.statusCode = 502;
-    res.end('{"error":"upstream_error"}');
+    if (e.message === 'Payload too large') {
+      res.statusCode = 413;
+      res.end('{"error":"payload_too_large"}');
+    } else {
+      res.statusCode = 502;
+      res.end('{"error":"upstream_error"}');
+    }
   }
 });
 

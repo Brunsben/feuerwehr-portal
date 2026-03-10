@@ -8,15 +8,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Feuerwehr Portal" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
   <title>Feuerwehr Portal</title>
 
   <!-- Dark-mode sofort anwenden (vor Vue-Mount, verhindert Flicker) -->
-  <script>
-    (function(){var c=(document.cookie.match(/(?:^|;\s*)fw_theme=(\w+)/)||[])[1];
-    var d=c?c==='dark':localStorage.getItem('darkMode')==='true';
-    if(d)document.documentElement.classList.add('dark');
-    })();
-  </script>
+  <script src="/theme-init.js"></script>
 
   <!-- Phosphor Icons -->
   <link rel="stylesheet" href="/vendor/phosphor/style.css">

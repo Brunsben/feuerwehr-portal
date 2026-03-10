@@ -16,6 +16,23 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
+            <!-- Navigation -->
+            <nav class="hidden sm:flex items-center gap-1 mr-3">
+              <button @click="currentView = 'dashboard'"
+                :class="currentView === 'dashboard'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300'"
+                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                <i class="ph ph-house mr-1"></i>Dashboard
+              </button>
+              <button v-if="currentUser?.Rolle === 'Admin'" @click="currentView = 'mitglieder'"
+                :class="currentView === 'mitglieder'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300'"
+                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                <i class="ph ph-users mr-1"></i>Mitglieder
+              </button>
+            </nav>
             <!-- Uhrzeit -->
             <div class="hidden sm:block text-right mr-4">
               <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ time }}</div>
@@ -47,6 +64,27 @@
 
       <!-- ── Main Content ───────────────────────────────────────────── -->
       <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
+
+        <!-- Mobile-Navigation -->
+        <div class="sm:hidden flex items-center gap-2 mb-6">
+          <button @click="currentView = 'dashboard'"
+            :class="currentView === 'dashboard'
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+              : 'text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600'"
+            class="flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors text-center">
+            <i class="ph ph-house mr-1"></i>Dashboard
+          </button>
+          <button v-if="currentUser?.Rolle === 'Admin'" @click="currentView = 'mitglieder'"
+            :class="currentView === 'mitglieder'
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+              : 'text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600'"
+            class="flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors text-center">
+            <i class="ph ph-users mr-1"></i>Mitglieder
+          </button>
+        </div>
+
+        <!-- ── Dashboard-View ────────────────────────────────────── -->
+        <template v-if="currentView === 'dashboard'">
         <!-- Willkommen -->
         <div class="text-center mb-10">
           <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -118,13 +156,18 @@
               <i class="ph ph-chart-bar text-lg text-blue-500"></i>
               PSA Statistiken
             </a>
-            <a v-if="appPermissions['psa']" href="/psa/#kameraden"
+            <button v-if="currentUser?.Rolle === 'Admin'" @click="currentView = 'mitglieder'"
               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
               <i class="ph ph-users text-lg text-emerald-500"></i>
-              Kameraden
-            </a>
+              Mitgliederverwaltung
+            </button>
           </div>
         </div>
+        </template>
+
+        <!-- ── Mitglieder-View ───────────────────────────────────── -->
+        <MitgliederView v-else-if="currentView === 'mitglieder'"
+          :isAdmin="currentUser?.Rolle === 'Admin'" />
       </main>
 
       <!-- ── Footer ─────────────────────────────────────────────────── -->
@@ -143,6 +186,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import LoginView from './components/LoginView.vue'
+import MitgliederView from './components/MitgliederView.vue'
+
+// ── View-Navigation ─────────────────────────────────────────────────────
+type ViewName = 'dashboard' | 'mitglieder'
+const currentView = ref<ViewName>('dashboard')
 
 // ── Config ──────────────────────────────────────────────────────────────
 const config = window.PORTAL_CONFIG

@@ -17,6 +17,15 @@ RUN npm run build
 
 # ── Stage 2: Serve ───────────────────────────────────────────────────────────
 FROM nginx:1.28-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY public/error-backend.html /usr/share/nginx/html/error-backend.html
+
+# Non-root User einrichten
+RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && chown nginx:nginx /var/run/nginx.pid
+
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
+COPY --chown=nginx:nginx public/error-backend.html /usr/share/nginx/html/error-backend.html
 # nginx.conf + config.js werden per docker-compose Volume gemountet
+
+USER nginx
+
+EXPOSE 8080

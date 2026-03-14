@@ -142,32 +142,7 @@
           </a>
         </div>
 
-        <!-- Schnellzugriff-Links -->
-        <div v-if="visibleApps.length > 0" class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
-          <h3 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">Schnellzugriff</h3>
-          <div class="flex flex-wrap gap-3">
-            <a v-if="appPermissions['psa']" href="/psa/#warnungen"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-              <i class="ph ph-warning text-lg text-red-500"></i>
-              PSA Warnungen
-            </a>
-            <a v-if="appPermissions['psa']" href="/psa/#statistiken"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-              <i class="ph ph-chart-bar text-lg text-blue-500"></i>
-              PSA Statistiken
-            </a>
-            <button v-if="currentUser?.Rolle === 'Admin'" @click="currentView = 'mitglieder'"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-              <i class="ph ph-users text-lg text-emerald-500"></i>
-              Mitgliederverwaltung
-            </button>
-            <a v-if="currentUser?.Rolle === 'Admin'" href="https://kuma.ofwietmarschen.org" target="_blank"
-              class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm">
-              <i class="ph ph-heartbeat text-lg text-green-500"></i>
-              Uptime Monitoring
-            </a>
-          </div>
-        </div>
+
         </template>
 
         <!-- ── Mitglieder-View ───────────────────────────────────── -->
@@ -181,6 +156,12 @@
         <p class="mt-1">
           <a href="https://github.com/Brunsben" target="_blank" class="hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
             Entwickelt von Benjamin Bruns
+          </a>
+        </p>
+        <p v-if="currentUser?.Rolle === 'Admin'" class="mt-2">
+          <a href="https://kuma.ofwietmarschen.org" target="_blank"
+            class="inline-flex items-center gap-1 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+            <i class="ph ph-heartbeat"></i> Uptime Monitoring
           </a>
         </p>
       </footer>

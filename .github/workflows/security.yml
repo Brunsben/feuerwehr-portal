@@ -1,0 +1,102 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Jeden Montag 06:00 UTC — fängt neue CVEs auch ohne Code-Änderung
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ── Dependency Audit (npm + Trivy) ────────────────────────────────────────
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Trivy Dependency Scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: "."
+          scanners: vuln
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: "1"
+          format: sarif
+          output: trivy-deps.sarif
+
+      - name: Upload Dependency Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-deps.sarif
+          category: dependency-audit
+
+  # ── Secret-Scanning (Gitleaks) ────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Docker-Image + IaC Scan (Trivy) ──────────────────────────────────────
+  docker-scan:
+    name: Docker and IaC Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy IaC Scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: config
+          scan-ref: "."
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: "0"
+          format: table
+
+      - name: Build Docker Image
+        run: docker build -t portal:scan .
+
+      - name: Trivy Image Scan
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: portal:scan
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          format: sarif
+          output: trivy-image.sarif
+
+      - name: Upload Image Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-image.sarif
+          category: docker-scan

@@ -68,7 +68,7 @@ services:
       POSTGREST_HOST: postgrest
       POSTGREST_PORT: "3000"
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET muss in .env gesetzt sein}"
-      FEUERWEHR_NAME: "OF Wietmarschen"
+      FEUERWEHR_NAME: "${FEUERWEHR_NAME:-Meine Feuerwehr}"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3002/me || exit 0"]
       interval: 30s

@@ -1,5 +1,5 @@
 window.PORTAL_CONFIG = {
-  FEUERWEHR_NAME: "OF Wietmarschen",
+  FEUERWEHR_NAME: "Meine Feuerwehr",
   APPS: [
     {
       id: "psa",

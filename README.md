@@ -1,6 +1,6 @@
 # Feuerwehr-Portal
 
-Zentrales Dashboard-Portal der Ortsfeuerwehr Wietmarschen. Vereint alle digitalen Anwendungen unter einer Oberfläche mit einheitlicher Authentifizierung.
+Zentrales Dashboard-Portal für Feuerwehren. Vereint alle digitalen Anwendungen unter einer Oberfläche mit einheitlicher Authentifizierung.
 
 ## Funktionen
 

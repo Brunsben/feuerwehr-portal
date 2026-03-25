@@ -1,0 +1,10 @@
+# Gitleaks – False Positives ausschließen
+# Doku: https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+useDefault = true
+
+[[allowlist.rules]]
+description = "nginx.conf enthält nur Template-Variablen (${N8N_API_KEY}), keine echten Secrets"
+id = "generic-api-key"
+paths = ['nginx\.conf$']

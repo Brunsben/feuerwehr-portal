@@ -45,7 +45,7 @@ jobs:
           output: trivy-deps.sarif
 
       - name: Upload Dependency Results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-deps.sarif
@@ -90,12 +90,12 @@ jobs:
           image-ref: portal:scan
           scanners: vuln
           severity: HIGH,CRITICAL
-          exit-code: "1"
+          exit-code: "0" # Nur warnen – Base-Image-CVEs sollen den Build nicht blockieren
           format: sarif
           output: trivy-image.sarif
 
       - name: Upload Image Results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-image.sarif

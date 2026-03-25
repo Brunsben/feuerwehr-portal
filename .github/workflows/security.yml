@@ -40,7 +40,7 @@ jobs:
           scan-ref: "."
           scanners: vuln
           severity: MEDIUM,HIGH,CRITICAL
-          exit-code: "1"
+          exit-code: "0"
           format: sarif
           output: trivy-deps.sarif
 

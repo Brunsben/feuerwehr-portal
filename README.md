@@ -13,11 +13,11 @@ Zentrales Dashboard-Portal für Feuerwehren. Vereint alle digitalen Anwendungen 
 
 ## Integrierte Apps
 
-| App | Pfad | Beschreibung |
-|-----|------|-------------|
-| PSA-Verwaltung | `/psa/` | Persönliche Schutzausrüstung, Prüfungen, Wäschen |
-| Essensbestellung | `/food/` | Menüpläne und Bestellungen (FoodBot) |
-| Führerscheinkontrolle | `/fk/` | Führerscheinprüfungen der Maschinisten |
+| App                   | Pfad     | Beschreibung                                     |
+| --------------------- | -------- | ------------------------------------------------ |
+| PSA-Verwaltung        | `/psa/`  | Persönliche Schutzausrüstung, Prüfungen, Wäschen |
+| Essensbestellung      | `/food/` | Menüpläne und Bestellungen (FoodBot)             |
+| Führerscheinkontrolle | `/fk/`   | Führerscheinprüfungen der Maschinisten           |
 
 ## Tech-Stack
 

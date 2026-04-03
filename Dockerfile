@@ -16,7 +16,7 @@ RUN mkdir -p public/vendor && \
 RUN npm run build
 
 # ── Stage 2: Serve ───────────────────────────────────────────────────────────
-FROM nginx:1.28-alpine
+FROM nginx:1.29-alpine
 
 # Non-root User einrichten
 RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \

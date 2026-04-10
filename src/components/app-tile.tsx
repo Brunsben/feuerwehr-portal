@@ -17,7 +17,7 @@ const APPS: AppConfig[] = [
     path: "/psa/",
     icon: "🦺",
     color: "bg-blue-500/10 border-blue-500/30 hover:border-blue-500/60",
-    healthUrl: "/psa/health",
+    healthUrl: "/api/psa/health",
     requiredPermission: "psa",
   },
   {

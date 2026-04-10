@@ -7,17 +7,17 @@
 #   docker compose up -d    # Alle Services starten
 #
 # Architektur:
-#   Portal (nginx:80) ─┬─ /        → Portal SPA
-#                       ├─ /psa/    → PSA-Frontend (nginx → PostgREST)
-#                       ├─ /food/   → FoodBot (Flask/Gunicorn)
-#                       └─ /fk/     → Führerscheinkontrolle (Next.js)
+#   nginx (Port 8180) ─┬─ /           → Portal (Next.js :8080)
+#                       ├─ /api/auth/  → Portal (Next.js :8080)
+#                       ├─ /psa/       → PSA-Frontend (nginx → PostgREST)
+#                       ├─ /food/      → FoodBot (Flask/Gunicorn)
+#                       └─ /fk/        → Führerscheinkontrolle (Next.js)
 #
-#   Alle Services teilen sich die PostgreSQL-Instanz (Schemas: fw_common,
-#   fw_psa, fw_food, fw_fuehrerschein) und das fw-network.
+#   Alle Services teilen sich die PostgreSQL-Instanz und das fw-network.
+#   Auth-Proxy ist nicht mehr nötig — Portal (Next.js) übernimmt die
+#   Authentifizierung direkt via API-Routes + Drizzle ORM.
 #
 # Verzeichnisstruktur (erwartet):
-#   Alle Repos liegen als Geschwister-Ordner nebeneinander:
-#
 #   ~/fw/
 #   ├── feuerwehr-portal/    ← dieses Repo (docker-compose.yml hier)
 #   ├── psa-verwaltung/      ← PSA-Verwaltung
@@ -33,11 +33,10 @@ x-logging: &default-logging
     max-file: "3"
 
 services:
-  # ── Portal (Reverse-Proxy + Landingpage) ──────────────────────────────────
-  portal:
-    build:
-      context: .
-    container_name: fw_portal
+  # ── nginx (Reverse-Proxy für alle Services) ───────────────────────────────
+  nginx:
+    image: nginx:1.29-alpine
+    container_name: fw_nginx
     logging: *default-logging
     ports:
       - "${PORTAL_PORT:-8180}:8080"
@@ -46,37 +45,29 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
       - ./nginx-ratelimit.conf:/etc/nginx/conf.d/ratelimit.conf:ro
-      - ./config.js:/usr/share/nginx/html/config.js:ro
+      - ./public/error-backend.html:/usr/share/nginx/html/error-backend.html:ro
     depends_on:
+      portal:
+        condition: service_healthy
       psa-frontend:
         condition: service_healthy
-      auth-proxy:
-        condition: service_started
     networks:
       - fw-network
     restart: unless-stopped
 
-  # ── Auth-Proxy (httpOnly-Cookie-basierte Portal-Authentifizierung) ────────
-  auth-proxy:
-    image: node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00
-    container_name: fw_auth
+  # ── Portal (Next.js — Auth + Dashboard + Mitglieder-Verwaltung) ───────────
+  portal:
+    build:
+      context: .
+    container_name: fw_portal
     logging: *default-logging
-    command: node /app/server.js
-    volumes:
-      - ./auth-proxy/server.js:/app/server.js:ro
     environment:
-      POSTGREST_HOST: postgrest
-      POSTGREST_PORT: "3000"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET muss in .env gesetzt sein}"
       FEUERWEHR_NAME: "${FEUERWEHR_NAME:-Meine Feuerwehr}"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/me || exit 0"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
     depends_on:
-      postgrest:
-        condition: service_started
+      postgres:
+        condition: service_healthy
     networks:
       - fw-network
     restart: unless-stopped

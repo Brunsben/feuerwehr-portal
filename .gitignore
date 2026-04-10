@@ -1,4 +1,6 @@
 node_modules/
 dist/
+.next/
 *.local
 .env*
+next-env.d.ts

@@ -26,13 +26,13 @@ interface Kamerad {
   personalnummer: string | null;
   kartenId: string | null;
   aktiv: boolean;
-  hoseGroesse: string | null;
   jackeGroesse: string | null;
-  handschuhGroesse: string | null;
+  hoseGroesse: string | null;
   stiefelGroesse: string | null;
-  helmGroesse: string | null;
-  shirtGroesse: string | null;
-  poloShirtGroesse: string | null;
+  handschuhGroesse: string | null;
+  hemdGroesse: string | null;
+  poloshirtGroesse: string | null;
+  fleeceGroesse: string | null;
   psaRolle: string | null;
   foodRolle: string | null;
   fkRolle: string | null;
@@ -85,13 +85,13 @@ const EMPTY_FORM: Omit<Kamerad, "id"> = {
   personalnummer: null,
   kartenId: null,
   aktiv: true,
-  hoseGroesse: null,
   jackeGroesse: null,
-  handschuhGroesse: null,
+  hoseGroesse: null,
   stiefelGroesse: null,
-  helmGroesse: null,
-  shirtGroesse: null,
-  poloShirtGroesse: null,
+  handschuhGroesse: null,
+  hemdGroesse: null,
+  poloshirtGroesse: null,
+  fleeceGroesse: null,
   psaRolle: null,
   foodRolle: null,
   fkRolle: null,
@@ -546,19 +546,19 @@ export function MitgliederClient({
                     onChange={(v) => updateForm("stiefelGroesse", v)}
                   />
                   <InputField
-                    label="Helm"
-                    value={form.helmGroesse || ""}
-                    onChange={(v) => updateForm("helmGroesse", v)}
+                    label="Hemd"
+                    value={form.hemdGroesse || ""}
+                    onChange={(v) => updateForm("hemdGroesse", v)}
                   />
                   <InputField
-                    label="Shirt"
-                    value={form.shirtGroesse || ""}
-                    onChange={(v) => updateForm("shirtGroesse", v)}
+                    label="Poloshirt"
+                    value={form.poloshirtGroesse || ""}
+                    onChange={(v) => updateForm("poloshirtGroesse", v)}
                   />
                   <InputField
-                    label="Polo-Shirt"
-                    value={form.poloShirtGroesse || ""}
-                    onChange={(v) => updateForm("poloShirtGroesse", v)}
+                    label="Fleece/Softshell"
+                    value={form.fleeceGroesse || ""}
+                    onChange={(v) => updateForm("fleeceGroesse", v)}
                   />
                 </div>
               </section>

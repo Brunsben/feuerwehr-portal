@@ -55,14 +55,29 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/psa", icon: LayoutDashboard },
   { label: "Mein Dashboard", href: "/psa/mein-dashboard", icon: User },
-  { label: "Ausrüstung", href: "/psa/ausruestung", icon: Shield, requireEdit: true },
+  {
+    label: "Ausrüstung",
+    href: "/psa/ausruestung",
+    icon: Shield,
+    requireEdit: true,
+  },
   { label: "Kameraden", href: "/psa/kameraden", icon: Users },
   { label: "Verlauf", href: "/psa/verlauf", icon: History, requireEdit: true },
   { label: "Typen", href: "/psa/typen", icon: Tag, requireEdit: true },
   { label: "Normen", href: "/psa/normen", icon: BookOpen },
   { label: "Warnungen", href: "/psa/warnungen", icon: AlertTriangle },
-  { label: "Statistiken", href: "/psa/statistiken", icon: BarChart3, requireEdit: true },
-  { label: "Changelog", href: "/psa/changelog", icon: FileText, requireAdmin: true },
+  {
+    label: "Statistiken",
+    href: "/psa/statistiken",
+    icon: BarChart3,
+    requireEdit: true,
+  },
+  {
+    label: "Changelog",
+    href: "/psa/changelog",
+    icon: FileText,
+    requireAdmin: true,
+  },
 ];
 
 // ── Layout component ───────────────────────────────────────────────────────
@@ -99,7 +114,10 @@ export function PsaLayoutClient({
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:flex lg:flex-col lg:w-56 bg-card border-r border-border">
             <div className="p-4 border-b border-border">
-              <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+              <Link
+                href="/dashboard"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
+              >
                 <ArrowLeft className="h-3 w-3" />
                 Portal
               </Link>
@@ -107,7 +125,9 @@ export function PsaLayoutClient({
                 <Shield className="h-4 w-4 text-blue-500" />
                 PSA-Verwaltung
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">{feuerwehrName}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {feuerwehrName}
+              </p>
             </div>
             <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
               {visibleNav.map((item) => {
@@ -132,7 +152,9 @@ export function PsaLayoutClient({
             <div className="p-3 border-t border-border space-y-2">
               <div className="text-xs text-muted-foreground">
                 {user.sub}
-                <span className="ml-1 text-blue-500 font-medium">{user.psa_rolle}</span>
+                <span className="ml-1 text-blue-500 font-medium">
+                  {user.psa_rolle}
+                </span>
               </div>
               <div className="flex gap-2">
                 <button
@@ -140,9 +162,17 @@ export function PsaLayoutClient({
                   className="p-1.5 rounded-md hover:bg-muted"
                   title="Theme wechseln"
                 >
-                  {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                  {theme === "dark" ? (
+                    <Sun className="h-3.5 w-3.5" />
+                  ) : (
+                    <Moon className="h-3.5 w-3.5" />
+                  )}
                 </button>
-                <button onClick={handleLogout} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-red-500" title="Abmelden">
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-red-500"
+                  title="Abmelden"
+                >
                   <LogOut className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -152,14 +182,20 @@ export function PsaLayoutClient({
           {/* Mobile top bar */}
           <div className="flex-1 flex flex-col min-w-0">
             <header className="lg:hidden sticky top-0 z-50 bg-card border-b border-border px-4 h-12 flex items-center justify-between">
-              <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-md hover:bg-muted">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-1.5 rounded-md hover:bg-muted"
+              >
                 <Menu className="h-5 w-5" />
               </button>
               <span className="font-semibold text-sm flex items-center gap-1.5">
                 <Shield className="h-4 w-4 text-blue-500" />
                 PSA
               </span>
-              <button onClick={handleLogout} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-red-500">
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-red-500"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </header>
@@ -167,11 +203,19 @@ export function PsaLayoutClient({
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
               <>
-                <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+                <div
+                  className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+                  onClick={() => setSidebarOpen(false)}
+                />
                 <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border lg:hidden flex flex-col">
                   <div className="p-4 border-b border-border flex items-center justify-between">
-                    <h2 className="font-semibold text-foreground text-sm">PSA-Verwaltung</h2>
-                    <button onClick={() => setSidebarOpen(false)} className="p-1 rounded-md hover:bg-muted">
+                    <h2 className="font-semibold text-foreground text-sm">
+                      PSA-Verwaltung
+                    </h2>
+                    <button
+                      onClick={() => setSidebarOpen(false)}
+                      className="p-1 rounded-md hover:bg-muted"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
@@ -197,7 +241,11 @@ export function PsaLayoutClient({
                     })}
                   </nav>
                   <div className="p-3 border-t border-border">
-                    <Link href="/dashboard" onClick={() => setSidebarOpen(false)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setSidebarOpen(false)}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
                       <ArrowLeft className="h-3 w-3" />
                       Zurück zum Portal
                     </Link>

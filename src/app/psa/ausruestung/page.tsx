@@ -39,8 +39,12 @@ export default function AusruestungPage() {
   const [filterTyp, setFilterTyp] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [editItem, setEditItem] = useState<Partial<Ausruestungstueck> | null>(null);
-  const [showBatchDialog, setShowBatchDialog] = useState<"pruefung" | "waesche" | null>(null);
+  const [editItem, setEditItem] = useState<Partial<Ausruestungstueck> | null>(
+    null,
+  );
+  const [showBatchDialog, setShowBatchDialog] = useState<
+    "pruefung" | "waesche" | null
+  >(null);
 
   const kategorien = useMemo(
     () => [...new Set(typen.map((t) => t.typ).filter(Boolean))].sort(),
@@ -49,7 +53,13 @@ export default function AusruestungPage() {
 
   const filtered = useMemo(() => {
     let list = ausruestung;
-    if (filterTyp) list = list.filter((a) => a.ausruestungstyp && typen.find((t) => t.bezeichnung === a.ausruestungstyp)?.typ === filterTyp);
+    if (filterTyp)
+      list = list.filter(
+        (a) =>
+          a.ausruestungstyp &&
+          typen.find((t) => t.bezeichnung === a.ausruestungstyp)?.typ ===
+            filterTyp,
+      );
     if (filterStatus) list = list.filter((a) => a.status === filterStatus);
     if (search) {
       const s = search.toLowerCase();
@@ -122,7 +132,9 @@ export default function AusruestungPage() {
       await batchAction(action, [...selectedIds], data);
       setSelectedIds(new Set());
       setShowBatchDialog(null);
-      toast.success(`${action === "pruefung" ? "Prüfung" : "Wäsche"} für ${selectedIds.size} Stück eingetragen`);
+      toast.success(
+        `${action === "pruefung" ? "Prüfung" : "Wäsche"} für ${selectedIds.size} Stück eingetragen`,
+      );
     } catch (e: unknown) {
       toast.error(`Fehler: ${e instanceof Error ? e.message : "Unbekannt"}`);
     }
@@ -203,7 +215,10 @@ export default function AusruestungPage() {
             <Droplets className="h-3 w-3" />
             Wäsche
           </button>
-          <button onClick={() => setSelectedIds(new Set())} className="text-xs text-muted-foreground ml-auto">
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-xs text-muted-foreground ml-auto"
+          >
             Abwählen
           </button>
         </div>
@@ -216,7 +231,14 @@ export default function AusruestungPage() {
             <tr className="border-b border-border text-left text-muted-foreground">
               {user.canEdit && (
                 <th className="p-2 w-8">
-                  <input type="checkbox" checked={selectedIds.size === filtered.length && filtered.length > 0} onChange={toggleAll} />
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedIds.size === filtered.length &&
+                      filtered.length > 0
+                    }
+                    onChange={toggleAll}
+                  />
                 </th>
               )}
               <th className="p-2">Typ</th>
@@ -230,22 +252,34 @@ export default function AusruestungPage() {
           </thead>
           <tbody>
             {filtered.map((a) => {
-              const overdue = a.naechstePruefung && new Date(a.naechstePruefung) < new Date();
+              const overdue =
+                a.naechstePruefung && new Date(a.naechstePruefung) < new Date();
               return (
-                <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30">
+                <tr
+                  key={a.id}
+                  className="border-b border-border/50 hover:bg-muted/30"
+                >
                   {user.canEdit && (
                     <td className="p-2">
-                      <input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleSelect(a.id)} />
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(a.id)}
+                        onChange={() => toggleSelect(a.id)}
+                      />
                     </td>
                   )}
                   <td className="p-2 font-medium">{a.ausruestungstyp}</td>
-                  <td className="p-2 text-muted-foreground">{a.seriennummer}</td>
+                  <td className="p-2 text-muted-foreground">
+                    {a.seriennummer}
+                  </td>
                   <td className="p-2">{a.kamerad || "—"}</td>
                   <td className="p-2">
                     {user.canEdit ? (
                       <select
                         value={a.status || ""}
-                        onChange={(e) => handleQuickStatus(a.id, e.target.value)}
+                        onChange={(e) =>
+                          handleQuickStatus(a.id, e.target.value)
+                        }
                         className="text-xs px-1.5 py-0.5 bg-background border border-border rounded"
                       >
                         {STATUS_OPTIONS.map((s) => (
@@ -253,19 +287,31 @@ export default function AusruestungPage() {
                         ))}
                       </select>
                     ) : (
-                      <span className="text-xs px-1.5 py-0.5 bg-muted rounded">{a.status}</span>
+                      <span className="text-xs px-1.5 py-0.5 bg-muted rounded">
+                        {a.status}
+                      </span>
                     )}
                   </td>
                   <td className="p-2 text-muted-foreground">{a.groesse}</td>
-                  <td className={`p-2 ${overdue ? "text-red-500 font-medium" : "text-muted-foreground"}`}>
+                  <td
+                    className={`p-2 ${overdue ? "text-red-500 font-medium" : "text-muted-foreground"}`}
+                  >
                     {a.naechstePruefung || "—"}
                   </td>
                   {user.canEdit && (
                     <td className="p-2 flex gap-1">
-                      <button onClick={() => setEditItem({ ...a })} className="p-1 hover:bg-muted rounded" title="Bearbeiten">
+                      <button
+                        onClick={() => setEditItem({ ...a })}
+                        className="p-1 hover:bg-muted rounded"
+                        title="Bearbeiten"
+                      >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(a.id)} className="p-1 hover:bg-muted rounded text-red-500" title="Löschen">
+                      <button
+                        onClick={() => handleDelete(a.id)}
+                        className="p-1 hover:bg-muted rounded text-red-500"
+                        title="Löschen"
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
@@ -276,7 +322,9 @@ export default function AusruestungPage() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">Keine Ausrüstung gefunden.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Keine Ausrüstung gefunden.
+          </p>
         )}
       </div>
 
@@ -285,8 +333,13 @@ export default function AusruestungPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{editItem.id ? "Bearbeiten" : "Neue Ausrüstung"}</h3>
-              <button onClick={() => setEditItem(null)} className="p-1 hover:bg-muted rounded">
+              <h3 className="font-semibold">
+                {editItem.id ? "Bearbeiten" : "Neue Ausrüstung"}
+              </h3>
+              <button
+                onClick={() => setEditItem(null)}
+                className="p-1 hover:bg-muted rounded"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -295,7 +348,12 @@ export default function AusruestungPage() {
                 <span className="text-xs text-muted-foreground">Typ</span>
                 <select
                   value={editItem.ausruestungstyp || ""}
-                  onChange={(e) => setEditItem({ ...editItem, ausruestungstyp: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({
+                      ...editItem,
+                      ausruestungstyp: e.target.value,
+                    })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 >
                   <option value="">Bitte wählen</option>
@@ -307,11 +365,15 @@ export default function AusruestungPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="text-xs text-muted-foreground">Seriennummer</span>
+                <span className="text-xs text-muted-foreground">
+                  Seriennummer
+                </span>
                 <input
                   type="text"
                   value={editItem.seriennummer || ""}
-                  onChange={(e) => setEditItem({ ...editItem, seriennummer: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, seriennummer: e.target.value })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
@@ -320,8 +382,12 @@ export default function AusruestungPage() {
                 <select
                   value={editItem.kameradId?.toString() || ""}
                   onChange={(e) => {
-                    const kid = e.target.value ? parseInt(e.target.value) : null;
-                    const kam = kid ? kameraden.find((k) => k.id === kid) : null;
+                    const kid = e.target.value
+                      ? parseInt(e.target.value)
+                      : null;
+                    const kam = kid
+                      ? kameraden.find((k) => k.id === kid)
+                      : null;
                     setEditItem({
                       ...editItem,
                       kameradId: kid,
@@ -345,7 +411,9 @@ export default function AusruestungPage() {
                   <span className="text-xs text-muted-foreground">Status</span>
                   <select
                     value={editItem.status || "Lager"}
-                    onChange={(e) => setEditItem({ ...editItem, status: e.target.value })}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, status: e.target.value })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   >
                     {STATUS_OPTIONS.map((s) => (
@@ -358,27 +426,40 @@ export default function AusruestungPage() {
                   <input
                     type="text"
                     value={editItem.groesse || ""}
-                    onChange={(e) => setEditItem({ ...editItem, groesse: e.target.value })}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, groesse: e.target.value })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs text-muted-foreground">Kaufdatum</span>
+                  <span className="text-xs text-muted-foreground">
+                    Kaufdatum
+                  </span>
                   <input
                     type="date"
                     value={editItem.kaufdatum || ""}
-                    onChange={(e) => setEditItem({ ...editItem, kaufdatum: e.target.value })}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, kaufdatum: e.target.value })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-muted-foreground">Herstellungsdatum</span>
+                  <span className="text-xs text-muted-foreground">
+                    Herstellungsdatum
+                  </span>
                   <input
                     type="date"
                     value={editItem.herstellungsdatum || ""}
-                    onChange={(e) => setEditItem({ ...editItem, herstellungsdatum: e.target.value })}
+                    onChange={(e) =>
+                      setEditItem({
+                        ...editItem,
+                        herstellungsdatum: e.target.value,
+                      })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
@@ -387,17 +468,25 @@ export default function AusruestungPage() {
                 <span className="text-xs text-muted-foreground">Notizen</span>
                 <textarea
                   value={editItem.notizen || ""}
-                  onChange={(e) => setEditItem({ ...editItem, notizen: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, notizen: e.target.value })
+                  }
                   rows={2}
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
             </div>
             <div className="flex gap-2 justify-end pt-2">
-              <button onClick={() => setEditItem(null)} className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted">
+              <button
+                onClick={() => setEditItem(null)}
+                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted"
+              >
                 Abbrechen
               </button>
-              <button onClick={handleSave} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              <button
+                onClick={handleSave}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
                 Speichern
               </button>
             </div>

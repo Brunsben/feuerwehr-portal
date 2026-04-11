@@ -29,10 +29,31 @@ export default function PsaDashboardPage() {
   }
 
   const tiles = [
-    { label: "Kameraden", value: stats.kameraden, icon: Users, color: "text-blue-500" },
-    { label: "Ausrüstung", value: stats.ausruestung, icon: Shield, color: "text-green-500" },
-    { label: "Ausgegeben", value: stats.ausgegeben, icon: ArrowRightLeft, color: "text-orange-500" },
-    { label: "Prüfung fällig", value: stats.pruefungFaellig, icon: AlertTriangle, color: stats.pruefungFaellig > 0 ? "text-red-500" : "text-muted-foreground" },
+    {
+      label: "Kameraden",
+      value: stats.kameraden,
+      icon: Users,
+      color: "text-blue-500",
+    },
+    {
+      label: "Ausrüstung",
+      value: stats.ausruestung,
+      icon: Shield,
+      color: "text-green-500",
+    },
+    {
+      label: "Ausgegeben",
+      value: stats.ausgegeben,
+      icon: ArrowRightLeft,
+      color: "text-orange-500",
+    },
+    {
+      label: "Prüfung fällig",
+      value: stats.pruefungFaellig,
+      icon: AlertTriangle,
+      color:
+        stats.pruefungFaellig > 0 ? "text-red-500" : "text-muted-foreground",
+    },
   ];
 
   return (

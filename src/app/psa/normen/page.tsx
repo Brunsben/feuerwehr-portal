@@ -4,7 +4,15 @@ import { usePsa } from "@/lib/psa-store";
 import { usePsaUser } from "../layout-client";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, Trash2, BookOpen, ExternalLink, X } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  BookOpen,
+  ExternalLink,
+  X,
+} from "lucide-react";
 import type { Norm } from "@/lib/psa-types";
 
 export default function NormenPage() {
@@ -14,16 +22,24 @@ export default function NormenPage() {
   const [editItem, setEditItem] = useState<Partial<Norm> | null>(null);
 
   const kategorien = useMemo(
-    () => [...new Set(normen.map((n) => n.ausruestungstypKategorie).filter(Boolean))].sort() as string[],
+    () =>
+      [
+        ...new Set(
+          normen.map((n) => n.ausruestungstypKategorie).filter(Boolean),
+        ),
+      ].sort() as string[],
     [normen],
   );
 
   const filtered = useMemo(() => {
-    let list = [...normen].sort((a, b) =>
-      (a.ausruestungstypKategorie || "").localeCompare(b.ausruestungstypKategorie || "") ||
-      (a.bezeichnung || "").localeCompare(b.bezeichnung || ""),
+    let list = [...normen].sort(
+      (a, b) =>
+        (a.ausruestungstypKategorie || "").localeCompare(
+          b.ausruestungstypKategorie || "",
+        ) || (a.bezeichnung || "").localeCompare(b.bezeichnung || ""),
     );
-    if (filterKat) list = list.filter((n) => n.ausruestungstypKategorie === filterKat);
+    if (filterKat)
+      list = list.filter((n) => n.ausruestungstypKategorie === filterKat);
     return list;
   }, [normen, filterKat]);
 
@@ -87,45 +103,71 @@ export default function NormenPage() {
 
       <div className="grid gap-3">
         {filtered.map((n) => (
-          <div key={n.id} className="bg-card border border-border rounded-md p-4">
+          <div
+            key={n.id}
+            className="bg-card border border-border rounded-md p-4"
+          >
             <div className="flex items-start justify-between">
               <div>
                 <div className="font-medium">{n.bezeichnung}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {n.normbezeichnung}
                   {n.ausruestungstypKategorie && (
-                    <span className="ml-2 bg-muted px-1.5 py-0.5 rounded">{n.ausruestungstypKategorie}</span>
+                    <span className="ml-2 bg-muted px-1.5 py-0.5 rounded">
+                      {n.ausruestungstypKategorie}
+                    </span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 {n.url && (
-                  <a href={n.url} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-muted rounded text-blue-500">
+                  <a
+                    href={n.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1 hover:bg-muted rounded text-blue-500"
+                  >
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 )}
                 {user.canEdit && (
                   <>
-                    <button onClick={() => setEditItem({ ...n })} className="p-1 hover:bg-muted rounded">
+                    <button
+                      onClick={() => setEditItem({ ...n })}
+                      className="p-1 hover:bg-muted rounded"
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
-                    <button onClick={() => handleDelete(n.id)} className="p-1 hover:bg-muted rounded text-red-500">
+                    <button
+                      onClick={() => handleDelete(n.id)}
+                      className="p-1 hover:bg-muted rounded text-red-500"
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </>
                 )}
               </div>
             </div>
-            {n.beschreibung && <p className="text-sm text-muted-foreground mt-2">{n.beschreibung}</p>}
+            {n.beschreibung && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {n.beschreibung}
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-              {n.pruefintervallMonate && <span>Prüfung: {n.pruefintervallMonate} Mon.</span>}
-              {n.maxLebensdauerJahre && <span>Lebensdauer: {n.maxLebensdauerJahre} J.</span>}
+              {n.pruefintervallMonate && (
+                <span>Prüfung: {n.pruefintervallMonate} Mon.</span>
+              )}
+              {n.maxLebensdauerJahre && (
+                <span>Lebensdauer: {n.maxLebensdauerJahre} J.</span>
+              )}
               {n.maxWaeschen && <span>Max. Wäschen: {n.maxWaeschen}</span>}
             </div>
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">Keine Normen vorhanden.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Keine Normen vorhanden.
+          </p>
         )}
       </div>
 
@@ -134,27 +176,43 @@ export default function NormenPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{editItem.id ? "Norm bearbeiten" : "Neue Norm"}</h3>
-              <button onClick={() => setEditItem(null)} className="p-1 hover:bg-muted rounded">
+              <h3 className="font-semibold">
+                {editItem.id ? "Norm bearbeiten" : "Neue Norm"}
+              </h3>
+              <button
+                onClick={() => setEditItem(null)}
+                className="p-1 hover:bg-muted rounded"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="space-y-3">
               <label className="block">
-                <span className="text-xs text-muted-foreground">Bezeichnung</span>
+                <span className="text-xs text-muted-foreground">
+                  Bezeichnung
+                </span>
                 <input
                   type="text"
                   value={editItem.bezeichnung || ""}
-                  onChange={(e) => setEditItem({ ...editItem, bezeichnung: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, bezeichnung: e.target.value })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
               <label className="block">
-                <span className="text-xs text-muted-foreground">Normbezeichnung (z.B. DIN EN 469)</span>
+                <span className="text-xs text-muted-foreground">
+                  Normbezeichnung (z.B. DIN EN 469)
+                </span>
                 <input
                   type="text"
                   value={editItem.normbezeichnung || ""}
-                  onChange={(e) => setEditItem({ ...editItem, normbezeichnung: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({
+                      ...editItem,
+                      normbezeichnung: e.target.value,
+                    })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
@@ -163,7 +221,12 @@ export default function NormenPage() {
                 <input
                   type="text"
                   value={editItem.ausruestungstypKategorie || ""}
-                  onChange={(e) => setEditItem({ ...editItem, ausruestungstypKategorie: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({
+                      ...editItem,
+                      ausruestungstypKategorie: e.target.value,
+                    })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   placeholder="z.B. Jacke, Hose…"
                 />
@@ -173,54 +236,93 @@ export default function NormenPage() {
                 <input
                   type="url"
                   value={editItem.url || ""}
-                  onChange={(e) => setEditItem({ ...editItem, url: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, url: e.target.value })
+                  }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
               <div className="grid grid-cols-3 gap-3">
                 <label className="block">
-                  <span className="text-xs text-muted-foreground">Prüfintervall (Mon.)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Prüfintervall (Mon.)
+                  </span>
                   <input
                     type="number"
                     value={editItem.pruefintervallMonate ?? ""}
-                    onChange={(e) => setEditItem({ ...editItem, pruefintervallMonate: e.target.value ? parseInt(e.target.value) : null })}
+                    onChange={(e) =>
+                      setEditItem({
+                        ...editItem,
+                        pruefintervallMonate: e.target.value
+                          ? parseInt(e.target.value)
+                          : null,
+                      })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-muted-foreground">Lebensdauer (J.)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Lebensdauer (J.)
+                  </span>
                   <input
                     type="number"
                     value={editItem.maxLebensdauerJahre ?? ""}
-                    onChange={(e) => setEditItem({ ...editItem, maxLebensdauerJahre: e.target.value ? parseInt(e.target.value) : null })}
+                    onChange={(e) =>
+                      setEditItem({
+                        ...editItem,
+                        maxLebensdauerJahre: e.target.value
+                          ? parseInt(e.target.value)
+                          : null,
+                      })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs text-muted-foreground">Max. Wäschen</span>
+                  <span className="text-xs text-muted-foreground">
+                    Max. Wäschen
+                  </span>
                   <input
                     type="number"
                     value={editItem.maxWaeschen ?? ""}
-                    onChange={(e) => setEditItem({ ...editItem, maxWaeschen: e.target.value ? parseInt(e.target.value) : null })}
+                    onChange={(e) =>
+                      setEditItem({
+                        ...editItem,
+                        maxWaeschen: e.target.value
+                          ? parseInt(e.target.value)
+                          : null,
+                      })
+                    }
                     className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   />
                 </label>
               </div>
               <label className="block">
-                <span className="text-xs text-muted-foreground">Beschreibung</span>
+                <span className="text-xs text-muted-foreground">
+                  Beschreibung
+                </span>
                 <textarea
                   value={editItem.beschreibung || ""}
-                  onChange={(e) => setEditItem({ ...editItem, beschreibung: e.target.value })}
+                  onChange={(e) =>
+                    setEditItem({ ...editItem, beschreibung: e.target.value })
+                  }
                   rows={3}
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
             </div>
             <div className="flex gap-2 justify-end pt-2">
-              <button onClick={() => setEditItem(null)} className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted">
+              <button
+                onClick={() => setEditItem(null)}
+                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted"
+              >
                 Abbrechen
               </button>
-              <button onClick={handleSave} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              <button
+                onClick={handleSave}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
                 Speichern
               </button>
             </div>

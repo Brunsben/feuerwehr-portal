@@ -9,13 +9,16 @@ export default function ChangelogPage() {
   const [filterAktion, setFilterAktion] = useState("");
 
   const aktionen = useMemo(
-    () => [...new Set(changelog.map((c) => c.aktion).filter(Boolean))].sort() as string[],
+    () =>
+      [
+        ...new Set(changelog.map((c) => c.aktion).filter(Boolean)),
+      ].sort() as string[],
     [changelog],
   );
 
   const filtered = useMemo(() => {
-    let list = [...changelog].sort(
-      (a, b) => (b.zeitpunkt || "").localeCompare(a.zeitpunkt || ""),
+    let list = [...changelog].sort((a, b) =>
+      (b.zeitpunkt || "").localeCompare(a.zeitpunkt || ""),
     );
     if (filterAktion) list = list.filter((c) => c.aktion === filterAktion);
     return list;
@@ -60,7 +63,10 @@ export default function ChangelogPage() {
           </thead>
           <tbody>
             {filtered.map((c) => (
-              <tr key={c.id} className="border-b border-border/50 hover:bg-muted/30">
+              <tr
+                key={c.id}
+                className="border-b border-border/50 hover:bg-muted/30"
+              >
                 <td className="p-2 text-muted-foreground text-xs whitespace-nowrap">
                   {c.zeitpunkt
                     ? new Date(c.zeitpunkt).toLocaleString("de-DE", {
@@ -86,14 +92,18 @@ export default function ChangelogPage() {
                     {c.aktion}
                   </span>
                 </td>
-                <td className="p-2 text-muted-foreground max-w-xs truncate">{c.details}</td>
+                <td className="p-2 text-muted-foreground max-w-xs truncate">
+                  {c.details}
+                </td>
                 <td className="p-2 text-muted-foreground">{c.benutzer}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">Keine Einträge vorhanden.</p>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Keine Einträge vorhanden.
+          </p>
         )}
       </div>
     </div>

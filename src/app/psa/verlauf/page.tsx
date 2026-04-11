@@ -3,7 +3,13 @@
 import { usePsa } from "@/lib/psa-store";
 import { usePsaUser } from "../layout-client";
 import { useState, useMemo } from "react";
-import { Loader2, History, Calendar, Droplets, ArrowRightLeft } from "lucide-react";
+import {
+  Loader2,
+  History,
+  Calendar,
+  Droplets,
+  ArrowRightLeft,
+} from "lucide-react";
 
 type Tab = "pruefungen" | "waesche" | "ausgaben";
 
@@ -20,25 +26,36 @@ export default function VerlaufPage() {
   ];
 
   const filteredPruefungen = useMemo(() => {
-    let list = [...pruefungen].sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
+    let list = [...pruefungen].sort((a, b) =>
+      (b.datum || "").localeCompare(a.datum || ""),
+    );
     if (filterKamerad) list = list.filter((p) => p.kamerad === filterKamerad);
     return list;
   }, [pruefungen, filterKamerad]);
 
   const filteredWaesche = useMemo(() => {
-    let list = [...waescheList].sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
+    let list = [...waescheList].sort((a, b) =>
+      (b.datum || "").localeCompare(a.datum || ""),
+    );
     if (filterKamerad) list = list.filter((w) => w.kamerad === filterKamerad);
     return list;
   }, [waescheList, filterKamerad]);
 
   const filteredAusgaben = useMemo(() => {
-    let list = [...ausgaben].sort((a, b) => (b.ausgabedatum || "").localeCompare(a.ausgabedatum || ""));
+    let list = [...ausgaben].sort((a, b) =>
+      (b.ausgabedatum || "").localeCompare(a.ausgabedatum || ""),
+    );
     if (filterKamerad) list = list.filter((a) => a.kamerad === filterKamerad);
     return list;
   }, [ausgaben, filterKamerad]);
 
   const kameradLabels = useMemo(
-    () => [...new Set(kameraden.filter((k) => k.aktiv).map((k) => `${k.vorname} ${k.name}`))].sort(),
+    () =>
+      [
+        ...new Set(
+          kameraden.filter((k) => k.aktiv).map((k) => `${k.vorname} ${k.name}`),
+        ),
+      ].sort(),
     [kameraden],
   );
 
@@ -67,7 +84,9 @@ export default function VerlaufPage() {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm transition-colors ${
-                  tab === t.key ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                  tab === t.key
+                    ? "bg-background shadow text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -108,7 +127,10 @@ export default function VerlaufPage() {
             </thead>
             <tbody>
               {filteredPruefungen.map((p) => (
-                <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30">
+                <tr
+                  key={p.id}
+                  className="border-b border-border/50 hover:bg-muted/30"
+                >
                   <td className="p-2 text-muted-foreground">{p.datum}</td>
                   <td className="p-2">{p.ausruestungstyp}</td>
                   <td className="p-2">{p.kamerad}</td>
@@ -124,13 +146,17 @@ export default function VerlaufPage() {
                     </span>
                   </td>
                   <td className="p-2 text-muted-foreground">{p.pruefer}</td>
-                  <td className="p-2 text-muted-foreground">{p.naechstePruefung}</td>
+                  <td className="p-2 text-muted-foreground">
+                    {p.naechstePruefung}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {filteredPruefungen.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Keine Prüfungen vorhanden.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Keine Prüfungen vorhanden.
+            </p>
           )}
         </div>
       )}
@@ -149,7 +175,10 @@ export default function VerlaufPage() {
             </thead>
             <tbody>
               {filteredWaesche.map((w) => (
-                <tr key={w.id} className="border-b border-border/50 hover:bg-muted/30">
+                <tr
+                  key={w.id}
+                  className="border-b border-border/50 hover:bg-muted/30"
+                >
                   <td className="p-2 text-muted-foreground">{w.datum}</td>
                   <td className="p-2">{w.ausruestungstyp}</td>
                   <td className="p-2">{w.kamerad}</td>
@@ -159,7 +188,9 @@ export default function VerlaufPage() {
             </tbody>
           </table>
           {filteredWaesche.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Keine Wäschen vorhanden.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Keine Wäschen vorhanden.
+            </p>
           )}
         </div>
       )}
@@ -179,13 +210,20 @@ export default function VerlaufPage() {
             </thead>
             <tbody>
               {filteredAusgaben.map((a) => (
-                <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="p-2 text-muted-foreground">{a.ausgabedatum}</td>
+                <tr
+                  key={a.id}
+                  className="border-b border-border/50 hover:bg-muted/30"
+                >
+                  <td className="p-2 text-muted-foreground">
+                    {a.ausgabedatum}
+                  </td>
                   <td className="p-2">{a.ausruestungstyp}</td>
                   <td className="p-2">{a.kamerad}</td>
                   <td className="p-2">
                     {a.rueckgabedatum ? (
-                      <span className="text-green-500 text-xs">{a.rueckgabedatum}</span>
+                      <span className="text-green-500 text-xs">
+                        {a.rueckgabedatum}
+                      </span>
                     ) : (
                       <span className="text-orange-500 text-xs">offen</span>
                     )}
@@ -196,7 +234,9 @@ export default function VerlaufPage() {
             </tbody>
           </table>
           {filteredAusgaben.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Keine Ausgaben vorhanden.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Keine Ausgaben vorhanden.
+            </p>
           )}
         </div>
       )}

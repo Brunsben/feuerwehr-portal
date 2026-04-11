@@ -6,11 +6,15 @@ import { Loader2, Shield, Calendar, Droplets } from "lucide-react";
 import { useMemo } from "react";
 
 export default function MeinDashboardPage() {
-  const { ausruestung, pruefungen, waescheList, ausgaben, typen, loading } = usePsa();
+  const { ausruestung, pruefungen, waescheList, ausgaben, typen, loading } =
+    usePsa();
   const user = usePsaUser();
 
   const meineAusruestung = useMemo(
-    () => ausruestung.filter((a) => a.kameradId === user.kamerad_id && a.status === "Ausgegeben"),
+    () =>
+      ausruestung.filter(
+        (a) => a.kameradId === user.kamerad_id && a.status === "Ausgegeben",
+      ),
     [ausruestung, user.kamerad_id],
   );
 
@@ -59,18 +63,29 @@ export default function MeinDashboardPage() {
           Meine Ausrüstung ({meineAusruestung.length})
         </h2>
         {meineAusruestung.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Keine Ausrüstung ausgegeben.</p>
+          <p className="text-sm text-muted-foreground">
+            Keine Ausrüstung ausgegeben.
+          </p>
         ) : (
           <div className="grid gap-2">
             {meineAusruestung.map((a) => (
-              <div key={a.id} className="bg-card border border-border rounded-md p-3 flex items-center justify-between">
+              <div
+                key={a.id}
+                className="bg-card border border-border rounded-md p-3 flex items-center justify-between"
+              >
                 <div>
-                  <span className="font-medium text-sm">{a.ausruestungstyp}</span>
+                  <span className="font-medium text-sm">
+                    {a.ausruestungstyp}
+                  </span>
                   {a.seriennummer && (
-                    <span className="text-xs text-muted-foreground ml-2">#{a.seriennummer}</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      #{a.seriennummer}
+                    </span>
                   )}
                   {a.groesse && (
-                    <span className="text-xs bg-muted px-1.5 py-0.5 rounded ml-2">{a.groesse}</span>
+                    <span className="text-xs bg-muted px-1.5 py-0.5 rounded ml-2">
+                      {a.groesse}
+                    </span>
                   )}
                 </div>
                 {a.naechstePruefung && (
@@ -100,7 +115,9 @@ export default function MeinDashboardPage() {
           <div className="space-y-1">
             {meinePruefungen.map((p) => (
               <div key={p.id} className="text-sm flex items-center gap-3 py-1">
-                <span className="text-muted-foreground w-24 shrink-0">{p.datum}</span>
+                <span className="text-muted-foreground w-24 shrink-0">
+                  {p.datum}
+                </span>
                 <span>{p.ausruestungstyp}</span>
                 <span
                   className={`text-xs px-1.5 py-0.5 rounded ${
@@ -127,7 +144,9 @@ export default function MeinDashboardPage() {
           <div className="space-y-1">
             {meineWaesche.map((w) => (
               <div key={w.id} className="text-sm flex items-center gap-3 py-1">
-                <span className="text-muted-foreground w-24 shrink-0">{w.datum}</span>
+                <span className="text-muted-foreground w-24 shrink-0">
+                  {w.datum}
+                </span>
                 <span>{w.ausruestungstyp}</span>
               </div>
             ))}

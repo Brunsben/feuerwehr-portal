@@ -3,4 +3,5 @@ dist/
 .next/
 *.local
 .env*
+!.env.example
 next-env.d.ts

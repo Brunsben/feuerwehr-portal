@@ -6,7 +6,8 @@ import { Loader2, BarChart3 } from "lucide-react";
 import { useMemo } from "react";
 
 export default function StatistikenPage() {
-  const { ausruestung, typen, kameraden, waescheList, pruefungen, loading } = usePsa();
+  const { ausruestung, typen, kameraden, waescheList, pruefungen, loading } =
+    usePsa();
   const user = usePsaUser();
 
   // Status-Verteilung
@@ -24,7 +25,9 @@ export default function StatistikenPage() {
     const typMap = new Map(typen.map((t) => [t.bezeichnung, t.typ]));
     const map = new Map<string, number>();
     for (const a of ausruestung) {
-      const kat = (a.ausruestungstyp ? typMap.get(a.ausruestungstyp) : null) || "Unbekannt";
+      const kat =
+        (a.ausruestungstyp ? typMap.get(a.ausruestungstyp) : null) ||
+        "Unbekannt";
       map.set(kat, (map.get(kat) || 0) + 1);
     }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
@@ -93,14 +96,18 @@ export default function StatistikenPage() {
           <div className="space-y-2">
             {statusVerteilung.map(([label, count]) => (
               <div key={label} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-28 shrink-0 truncate">{label}</span>
+                <span className="text-xs text-muted-foreground w-28 shrink-0 truncate">
+                  {label}
+                </span>
                 <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
                   <div
                     className="h-full bg-blue-500 rounded-full"
                     style={{ width: `${(count / maxStatus) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-medium w-8 text-right">{count}</span>
+                <span className="text-xs font-medium w-8 text-right">
+                  {count}
+                </span>
               </div>
             ))}
           </div>
@@ -108,18 +115,24 @@ export default function StatistikenPage() {
 
         {/* Typ-Kategorien */}
         <div className="bg-card border border-border rounded-lg p-4">
-          <h3 className="text-sm font-semibold mb-3">Ausrüstung nach Kategorie</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            Ausrüstung nach Kategorie
+          </h3>
           <div className="space-y-2">
             {typVerteilung.map(([label, count]) => (
               <div key={label} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-28 shrink-0 truncate">{label}</span>
+                <span className="text-xs text-muted-foreground w-28 shrink-0 truncate">
+                  {label}
+                </span>
                 <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
                   <div
                     className="h-full bg-green-500 rounded-full"
                     style={{ width: `${(count / maxTyp) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-medium w-8 text-right">{count}</span>
+                <span className="text-xs font-medium w-8 text-right">
+                  {count}
+                </span>
               </div>
             ))}
           </div>
@@ -130,18 +143,28 @@ export default function StatistikenPage() {
           <h3 className="text-sm font-semibold mb-3">Prüfungen pro Monat</h3>
           <div className="flex items-end gap-1 h-32">
             {pruefungenProMonat.map(([monat, count]) => (
-              <div key={monat} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                key={monat}
+                className="flex-1 flex flex-col items-center gap-1"
+              >
                 <span className="text-[10px] font-medium">{count}</span>
                 <div
                   className="w-full bg-green-500 rounded-t"
-                  style={{ height: `${(count / maxPruef) * 100}%`, minHeight: 2 }}
+                  style={{
+                    height: `${(count / maxPruef) * 100}%`,
+                    minHeight: 2,
+                  }}
                 />
-                <span className="text-[9px] text-muted-foreground">{monat.slice(5)}</span>
+                <span className="text-[9px] text-muted-foreground">
+                  {monat.slice(5)}
+                </span>
               </div>
             ))}
           </div>
           {pruefungenProMonat.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center">Keine Daten</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Keine Daten
+            </p>
           )}
         </div>
 
@@ -150,40 +173,58 @@ export default function StatistikenPage() {
           <h3 className="text-sm font-semibold mb-3">Wäschen pro Monat</h3>
           <div className="flex items-end gap-1 h-32">
             {waescheProMonat.map(([monat, count]) => (
-              <div key={monat} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                key={monat}
+                className="flex-1 flex flex-col items-center gap-1"
+              >
                 <span className="text-[10px] font-medium">{count}</span>
                 <div
                   className="w-full bg-cyan-500 rounded-t"
-                  style={{ height: `${(count / maxWaesche) * 100}%`, minHeight: 2 }}
+                  style={{
+                    height: `${(count / maxWaesche) * 100}%`,
+                    minHeight: 2,
+                  }}
                 />
-                <span className="text-[9px] text-muted-foreground">{monat.slice(5)}</span>
+                <span className="text-[9px] text-muted-foreground">
+                  {monat.slice(5)}
+                </span>
               </div>
             ))}
           </div>
           {waescheProMonat.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center">Keine Daten</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Keine Daten
+            </p>
           )}
         </div>
 
         {/* Top Kameraden */}
         <div className="bg-card border border-border rounded-lg p-4 lg:col-span-2">
-          <h3 className="text-sm font-semibold mb-3">Ausrüstung pro Kamerad (Top 15)</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            Ausrüstung pro Kamerad (Top 15)
+          </h3>
           <div className="space-y-2">
             {proKamerad.map(([label, count]) => (
               <div key={label} className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground w-40 shrink-0 truncate">{label}</span>
+                <span className="text-xs text-muted-foreground w-40 shrink-0 truncate">
+                  {label}
+                </span>
                 <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
                   <div
                     className="h-full bg-orange-500 rounded-full"
                     style={{ width: `${(count / maxKamerad) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-medium w-8 text-right">{count}</span>
+                <span className="text-xs font-medium w-8 text-right">
+                  {count}
+                </span>
               </div>
             ))}
           </div>
           {proKamerad.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center">Keine ausgegebene Ausrüstung</p>
+            <p className="text-xs text-muted-foreground text-center">
+              Keine ausgegebene Ausrüstung
+            </p>
           )}
         </div>
       </div>

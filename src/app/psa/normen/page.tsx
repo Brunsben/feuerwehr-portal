@@ -10,7 +10,6 @@ import {
   Pencil,
   Trash2,
   BookOpen,
-  ExternalLink,
   X,
 } from "lucide-react";
 import type { Norm } from "@/lib/psa-types";
@@ -111,25 +110,14 @@ export default function NormenPage() {
               <div>
                 <div className="font-medium">{n.bezeichnung}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {n.normbezeichnung}
                   {n.ausruestungstypKategorie && (
-                    <span className="ml-2 bg-muted px-1.5 py-0.5 rounded">
+                    <span className="bg-muted px-1.5 py-0.5 rounded">
                       {n.ausruestungstypKategorie}
                     </span>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                {n.url && (
-                  <a
-                    href={n.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1 hover:bg-muted rounded text-blue-500"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
                 {user.canEdit && (
                   <>
                     <button
@@ -201,22 +189,6 @@ export default function NormenPage() {
                 />
               </label>
               <label className="block">
-                <span className="text-xs text-muted-foreground">
-                  Normbezeichnung (z.B. DIN EN 469)
-                </span>
-                <input
-                  type="text"
-                  value={editItem.normbezeichnung || ""}
-                  onChange={(e) =>
-                    setEditItem({
-                      ...editItem,
-                      normbezeichnung: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
-                />
-              </label>
-              <label className="block">
                 <span className="text-xs text-muted-foreground">Kategorie</span>
                 <input
                   type="text"
@@ -229,17 +201,6 @@ export default function NormenPage() {
                   }
                   className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                   placeholder="z.B. Jacke, Hose…"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs text-muted-foreground">URL</span>
-                <input
-                  type="url"
-                  value={editItem.url || ""}
-                  onChange={(e) =>
-                    setEditItem({ ...editItem, url: e.target.value })
-                  }
-                  className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
                 />
               </label>
               <div className="grid grid-cols-3 gap-3">

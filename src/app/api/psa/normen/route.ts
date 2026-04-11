@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   await logChange(
     "Normen",
     "Erstellt",
-    `${body.bezeichnung || ""} (${body.normbezeichnung || ""})`,
+    `${body.bezeichnung || ""}`,
     user.sub,
   );
   return NextResponse.json(created, { status: 201 });

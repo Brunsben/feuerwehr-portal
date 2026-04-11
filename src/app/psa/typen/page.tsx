@@ -222,8 +222,8 @@ export default function TypenPage() {
                 >
                   <option value="">Keine</option>
                   {normen.map((n) => (
-                    <option key={n.id} value={n.normbezeichnung || ""}>
-                      {n.normbezeichnung} – {n.bezeichnung}
+                    <option key={n.id} value={n.bezeichnung || ""}>
+                      {n.bezeichnung}{n.ausruestungstypKategorie ? ` – ${n.ausruestungstypKategorie}` : ""}
                     </option>
                   ))}
                 </select>

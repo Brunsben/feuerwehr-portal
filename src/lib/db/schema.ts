@@ -90,13 +90,10 @@ export const ausruestungstuecke = schema.table("Ausruestungstuecke", {
     onDelete: "set null",
   }),
   status: text("Status"),
-  kaufdatum: text("Kaufdatum"),
   herstellungsdatum: text("Herstellungsdatum"),
   naechstePruefung: text("Naechste_Pruefung"),
-  letztePruefung: text("Letzte_Pruefung"),
   lebensendeDatum: text("Lebensende_Datum"),
   qrCode: text("QR_Code"),
-  waescheAnzahl: integer("Waesche_Anzahl"),
   groesse: text("Groesse"),
   notizen: text("Notizen"),
 });
@@ -115,6 +112,7 @@ export const ausgaben = schema.table("Ausgaben", {
   ausgabedatum: text("Ausgabedatum"),
   rueckgabedatum: text("Rueckgabedatum"),
   notizen: text("Notizen"),
+  seriennummer: text("Seriennummer"),
 });
 
 // ============================================================================
@@ -134,6 +132,7 @@ export const pruefungen = schema.table("Pruefungen", {
   naechstePruefung: text("Naechste_Pruefung"),
   notizen: text("Notizen"),
   foto: text("Foto"),
+  seriennummer: text("Seriennummer"),
 });
 
 // ============================================================================
@@ -148,7 +147,9 @@ export const waesche = schema.table("Waesche", {
     onDelete: "set null",
   }),
   datum: text("Datum"),
+  waescheart: text("Waescheart"),
   notizen: text("Notizen"),
+  seriennummer: text("Seriennummer"),
 });
 
 // ============================================================================
@@ -157,13 +158,11 @@ export const waesche = schema.table("Waesche", {
 export const normen = schema.table("Normen", {
   id: serial("id").primaryKey(),
   bezeichnung: text("Bezeichnung"),
-  ausruestungstypKategorie: text("Ausruestungstyp_Kategorie"),
-  normbezeichnung: text("Normbezeichnung"),
-  url: text("URL"),
-  pruefintervallMonate: integer("Pruefintervall_Monate"),
-  maxLebensdauerJahre: integer("Max_Lebensdauer_Jahre"),
-  maxWaeschen: integer("Max_Waeschen"),
   beschreibung: text("Beschreibung"),
+  pruefintervallMonate: bigint("Pruefintervall_Monate", { mode: "number" }),
+  maxLebensdauerJahre: bigint("Max_Lebensdauer_Jahre", { mode: "number" }),
+  ausruestungstypKategorie: text("Ausruestungstyp_Kategorie"),
+  maxWaeschen: bigint("Max_Waeschen", { mode: "number" }),
 });
 
 // ============================================================================
@@ -175,7 +174,8 @@ export const changelog = schema.table("Changelog", {
   aktion: text("Aktion"),
   details: text("Details"),
   benutzer: text("Benutzer"),
-  zeitpunkt: timestamp("Zeitpunkt", { withTimezone: true }).defaultNow(),
+  zeitpunkt: timestamp("Zeitpunkt").defaultNow(),
+  datensatzId: bigint("Datensatz_Id", { mode: "number" }),
 });
 
 // ============================================================================

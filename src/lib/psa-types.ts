@@ -37,13 +37,10 @@ export interface Ausruestungstueck {
   kamerad: string | null;
   kameradId: number | null;
   status: string | null;
-  kaufdatum: string | null;
   herstellungsdatum: string | null;
   naechstePruefung: string | null;
-  letztePruefung: string | null;
   lebensendeDatum: string | null;
   qrCode: string | null;
-  waescheAnzahl: number | null;
   groesse: string | null;
   notizen: string | null;
 }
@@ -57,6 +54,7 @@ export interface Ausgabe {
   ausgabedatum: string | null;
   rueckgabedatum: string | null;
   notizen: string | null;
+  seriennummer: string | null;
 }
 
 export interface Pruefung {
@@ -71,6 +69,7 @@ export interface Pruefung {
   naechstePruefung: string | null;
   notizen: string | null;
   foto: string | null;
+  seriennummer: string | null;
 }
 
 export interface Waesche {
@@ -80,19 +79,19 @@ export interface Waesche {
   kamerad: string | null;
   kameradId: number | null;
   datum: string | null;
+  waescheart: string | null;
   notizen: string | null;
+  seriennummer: string | null;
 }
 
 export interface Norm {
   id: number;
   bezeichnung: string | null;
-  ausruestungstypKategorie: string | null;
-  normbezeichnung: string | null;
-  url: string | null;
+  beschreibung: string | null;
   pruefintervallMonate: number | null;
   maxLebensdauerJahre: number | null;
   maxWaeschen: number | null;
-  beschreibung: string | null;
+  ausruestungstypKategorie: string | null;
 }
 
 export interface ChangelogEntry {
@@ -102,6 +101,7 @@ export interface ChangelogEntry {
   details: string | null;
   benutzer: string | null;
   zeitpunkt: string | null;
+  datensatzId: number | null;
 }
 
 export interface Schaden {

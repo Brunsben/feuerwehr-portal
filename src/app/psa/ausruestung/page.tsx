@@ -436,19 +436,6 @@ export default function AusruestungPage() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
                   <span className="text-xs text-muted-foreground">
-                    Kaufdatum
-                  </span>
-                  <input
-                    type="date"
-                    value={editItem.kaufdatum || ""}
-                    onChange={(e) =>
-                      setEditItem({ ...editItem, kaufdatum: e.target.value })
-                    }
-                    className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-xs text-muted-foreground">
                     Herstellungsdatum
                   </span>
                   <input

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { db } from "@/lib/db";
 import { benutzer, kameraden, loginAttempts } from "@/lib/db/schema";
-import { eq, and, gt, sql } from "drizzle-orm";
+import { eq, and, gt, lt, sql } from "drizzle-orm";
 import { signJwt, setAuthCookie, buildAppPermissions } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     await db
       .delete(loginAttempts)
-      .where(sql`${loginAttempts.zeitpunkt} < ${oneDayAgo}`);
+      .where(lt(loginAttempts.zeitpunkt, oneDayAgo));
 
     // App-Rollen aus verknüpftem Kamerad lesen
     let psaRolle: string | null = null;

@@ -25,7 +25,7 @@ const APPS: AppConfig[] = [
     path: "/food/",
     icon: "🍽️",
     color: "bg-green-500/10 border-green-500/30 hover:border-green-500/60",
-    healthUrl: "/food/health",
+    healthUrl: "/food/system/health",
     requiredPermission: "food",
   },
   {

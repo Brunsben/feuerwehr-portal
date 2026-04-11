@@ -6,6 +6,7 @@ import {
   integer,
   timestamp,
   date,
+  bigint,
 } from "drizzle-orm/pg-core";
 
 // Bestehendes Schema beibehalten (Legacy-Name aus NocoDB-Zeiten)
@@ -66,12 +67,14 @@ export const loginAttempts = schema.table("login_attempts", {
 // ============================================================================
 export const ausruestungstypen = schema.table("Ausruestungstypen", {
   id: serial("id").primaryKey(),
-  bezeichnung: text("Bezeichnung"),
   typ: text("Typ"),
-  pruefintervallMonate: integer("Pruefintervall_Monate"),
-  maxLebensdauerJahre: integer("Max_Lebensdauer_Jahre"),
-  maxWaeschen: integer("Max_Waeschen"),
+  bezeichnung: text("Bezeichnung"),
+  hersteller: text("Hersteller"),
   norm: text("Norm"),
+  maxLebensdauerJahre: bigint("Max_Lebensdauer_Jahre", { mode: "number" }),
+  pruefintervallMonate: bigint("Pruefintervall_Monate", { mode: "number" }),
+  maxWaeschen: bigint("Max_Waeschen", { mode: "number" }),
+  beschreibung: text("Beschreibung"),
   foto: text("Foto"),
 });
 

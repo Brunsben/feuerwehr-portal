@@ -175,11 +175,14 @@ services:
     logging: *default-logging
     environment:
       PROJECT_ROOT: "/app"
-      DATABASE_PATH: "/app/data/fuehrerscheinkontrolle.db"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET muss in .env gesetzt sein}"
-      AUTH_PROXY_URL: "http://auth-proxy:3002"
+      AUTH_PROXY_URL: "http://portal:8080"
       ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY:?FK_ENCRYPTION_KEY muss in .env gesetzt sein}"
       BACKUP_API_KEY: "${FK_BACKUP_API_KEY:?FK_BACKUP_API_KEY muss in .env gesetzt sein}"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - fk_data:/app/data
     healthcheck:

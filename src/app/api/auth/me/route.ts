@@ -11,6 +11,7 @@ export async function GET() {
     Rolle: user.app_role,
     KameradId: user.kamerad_id,
     KameradName: user.kamerad_name,
+    food_rolle: user.food_rolle || null,
     app_permissions: user.app_permissions,
   });
 }

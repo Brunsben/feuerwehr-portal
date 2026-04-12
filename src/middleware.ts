@@ -18,6 +18,7 @@ async function getUser(req: NextRequest) {
     return {
       sub: payload.sub as string,
       app_role: payload.app_role as string,
+      food_rolle: (payload.food_rolle as string) || null,
     };
   } catch {
     return null;
@@ -87,6 +88,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.json({ error: "Nicht berechtigt" }, { status: 403 });
     }
     return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Food-Admin Routes
+  const isFoodAdmin = isAdmin || user.food_rolle === "Admin";
+  if (pathname.startsWith("/food/admin") && !isFoodAdmin) {
+    return NextResponse.redirect(new URL("/food", req.url));
   }
 
   return NextResponse.next();

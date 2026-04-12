@@ -61,11 +61,21 @@ const NAV_ITEMS: NavItem[] = [
     icon: Shield,
     requireEdit: true,
   },
-  { label: "Kameraden", href: "/psa/kameraden", icon: Users, requireEdit: true },
+  {
+    label: "Kameraden",
+    href: "/psa/kameraden",
+    icon: Users,
+    requireEdit: true,
+  },
   { label: "Verlauf", href: "/psa/verlauf", icon: History, requireEdit: true },
   { label: "Typen", href: "/psa/typen", icon: Tag, requireEdit: true },
   { label: "Normen", href: "/psa/normen", icon: BookOpen, requireEdit: true },
-  { label: "Warnungen", href: "/psa/warnungen", icon: AlertTriangle, requireEdit: true },
+  {
+    label: "Warnungen",
+    href: "/psa/warnungen",
+    icon: AlertTriangle,
+    requireEdit: true,
+  },
   {
     label: "Statistiken",
     href: "/psa/statistiken",

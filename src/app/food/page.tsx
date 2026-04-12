@@ -38,6 +38,12 @@ export default function FoodTouchPage() {
     refreshInterval: 10000,
   });
 
+  const { data: me } = useSWR<{ Rolle: string; food_rolle: string | null }>(
+    "/api/auth/me",
+    fetcher,
+  );
+  const isFoodAdmin = me?.Rolle === "Admin" || me?.food_rolle === "Admin";
+
   const showStatus = useCallback(
     (type: "success" | "error", message: string) => {
       setStatus({ type, message });
@@ -209,12 +215,14 @@ export default function FoodTouchPage() {
         >
           Vollbild
         </button>
-        <Link
-          href="/food/admin"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Admin →
-        </Link>
+        {isFoodAdmin && (
+          <Link
+            href="/food/admin"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Admin →
+          </Link>
+        )}
       </div>
 
       {/* Status popup */}

@@ -65,27 +65,31 @@ export default function PsaDashboardPage() {
         </p>
       </div>
 
-      {/* Stats Tiles */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {tiles.map((t) => {
-          const Icon = t.icon;
-          return (
-            <div
-              key={t.label}
-              className="bg-card border border-border rounded-lg p-4"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className={`h-4 w-4 ${t.color}`} />
-                <span className="text-xs text-muted-foreground">{t.label}</span>
+      {/* Stats Tiles – nur für Admin/Verwalter */}
+      {user.canEdit && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {tiles.map((t) => {
+            const Icon = t.icon;
+            return (
+              <div
+                key={t.label}
+                className="bg-card border border-border rounded-lg p-4"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Icon className={`h-4 w-4 ${t.color}`} />
+                  <span className="text-xs text-muted-foreground">
+                    {t.label}
+                  </span>
+                </div>
+                <span className="text-2xl font-bold">{t.value}</span>
               </div>
-              <span className="text-2xl font-bold">{t.value}</span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Warnungen */}
-      {warnungen.length > 0 && (
+      {/* Warnungen – nur für Admin/Verwalter */}
+      {user.canEdit && warnungen.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-500" />

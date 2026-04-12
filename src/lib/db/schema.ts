@@ -7,6 +7,8 @@ import {
   timestamp,
   date,
   bigint,
+  uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 
 // Bestehendes Schema beibehalten (Legacy-Name aus NocoDB-Zeiten)
@@ -191,4 +193,109 @@ export const schadensdokumentation = schema.table("Schadensdokumentation", {
   erstelltAm: timestamp("Erstellt_Am", { withTimezone: true }).defaultNow(),
   ausruestungstyp: text("Ausruestungstyp"),
   seriennummer: text("Seriennummer"),
+});
+
+// ============================================================================
+// FOOD: BENUTZER (Essensteilnehmer)
+// ============================================================================
+export const foodUsers = schema.table(
+  "food_users",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    personalNumber: text("personal_number"),
+    cardId: text("card_id"),
+    mobileToken: text("mobile_token"),
+  },
+  (t) => [
+    uniqueIndex("food_users_personal_number_idx").on(t.personalNumber),
+    uniqueIndex("food_users_card_id_idx").on(t.cardId),
+    uniqueIndex("food_users_mobile_token_idx").on(t.mobileToken),
+    index("food_users_name_idx").on(t.name),
+  ],
+);
+
+// ============================================================================
+// FOOD: MENÜS (Tagesmenüs)
+// ============================================================================
+export const foodMenus = schema.table(
+  "food_menus",
+  {
+    id: serial("id").primaryKey(),
+    date: date("date", { mode: "string" }).notNull(),
+    description: text("description").notNull(),
+    zweiMenuesAktiv: boolean("zwei_menues_aktiv").notNull().default(false),
+    menu1Name: text("menu1_name"),
+    menu2Name: text("menu2_name"),
+    registrationDeadline: text("registration_deadline")
+      .notNull()
+      .default("19:45"),
+    deadlineEnabled: boolean("deadline_enabled").notNull().default(true),
+  },
+  (t) => [uniqueIndex("food_menus_date_idx").on(t.date)],
+);
+
+// ============================================================================
+// FOOD: ANMELDUNGEN (Essensanmeldungen)
+// ============================================================================
+export const foodRegistrations = schema.table(
+  "food_registrations",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => foodUsers.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    menuChoice: integer("menu_choice").notNull().default(1),
+  },
+  (t) => [
+    uniqueIndex("food_reg_user_date_idx").on(t.userId, t.date),
+    index("food_reg_date_idx").on(t.date, t.userId),
+  ],
+);
+
+// ============================================================================
+// FOOD: GÄSTE (Externe Esser pro Tag)
+// ============================================================================
+export const foodGuests = schema.table(
+  "food_guests",
+  {
+    id: serial("id").primaryKey(),
+    date: date("date", { mode: "string" }).notNull(),
+    menuChoice: integer("menu_choice").notNull().default(1),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("food_guests_date_menu_idx").on(t.date, t.menuChoice),
+    index("food_guests_date_idx").on(t.date),
+  ],
+);
+
+// ============================================================================
+// FOOD: ADMIN-LOG (Audit-Trail)
+// ============================================================================
+export const foodAdminLog = schema.table(
+  "food_admin_log",
+  {
+    id: serial("id").primaryKey(),
+    timestamp: timestamp("timestamp", { mode: "string" })
+      .notNull()
+      .defaultNow(),
+    adminUser: text("admin_user").notNull(),
+    action: text("action").notNull(),
+    details: text("details"),
+  },
+  (t) => [
+    index("food_admin_log_ts_idx").on(t.timestamp),
+    index("food_admin_log_user_idx").on(t.adminUser),
+  ],
+);
+
+// ============================================================================
+// FOOD: VORLAGEN-MENÜS (Wiederverwendbare Menü-Templates)
+// ============================================================================
+export const foodPresetMenus = schema.table("food_preset_menus", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  sortOrder: integer("sort_order").notNull().default(0),
 });

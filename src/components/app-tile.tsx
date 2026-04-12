@@ -22,10 +22,10 @@ const APPS: AppConfig[] = [
   },
   {
     name: "Essensbestellung",
-    path: "/food/",
+    path: "/food/admin",
     icon: "🍽️",
     color: "bg-green-500/10 border-green-500/30 hover:border-green-500/60",
-    healthUrl: "/food/system/health",
+    healthUrl: "/api/food/system/health",
     requiredPermission: "food",
   },
   {

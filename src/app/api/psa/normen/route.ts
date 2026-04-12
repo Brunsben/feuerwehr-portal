@@ -32,11 +32,6 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const [created] = await db.insert(normen).values(body).returning();
-  await logChange(
-    "Normen",
-    "Erstellt",
-    `${body.bezeichnung || ""}`,
-    user.sub,
-  );
+  await logChange("Normen", "Erstellt", `${body.bezeichnung || ""}`, user.sub);
   return NextResponse.json(created, { status: 201 });
 }

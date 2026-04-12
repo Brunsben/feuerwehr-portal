@@ -1,0 +1,60 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import {
+  foodUsers,
+  foodMenus,
+  foodRegistrations,
+  foodGuests,
+  foodAdminLog,
+  foodPresetMenus,
+  kameraden,
+} from "@/lib/db/schema";
+import { getFoodUser, isFoodAdmin } from "@/lib/food-auth";
+import {
+  foodToday,
+  getFoodMenuForDate,
+  getFoodGuestsForDate,
+  getFoodRegistrationsForDate,
+  isFoodRegistrationOpen,
+  toggleFoodRegistration,
+  saveFoodMenu,
+  setFoodGuestCount,
+  getFoodRegistrationCount,
+  getFoodTotalCount,
+  logFoodAdmin,
+  generateFoodToken,
+} from "@/lib/food-utils";
+import { asc, eq, and, desc, gte, sql } from "drizzle-orm";
+
+export {
+  db,
+  foodUsers,
+  foodMenus,
+  foodRegistrations,
+  foodGuests,
+  foodAdminLog,
+  foodPresetMenus,
+  kameraden,
+  getFoodUser,
+  isFoodAdmin,
+  foodToday,
+  getFoodMenuForDate,
+  getFoodGuestsForDate,
+  getFoodRegistrationsForDate,
+  isFoodRegistrationOpen,
+  toggleFoodRegistration,
+  saveFoodMenu,
+  setFoodGuestCount,
+  getFoodRegistrationCount,
+  getFoodTotalCount,
+  logFoodAdmin,
+  generateFoodToken,
+  asc,
+  eq,
+  and,
+  desc,
+  gte,
+  sql,
+  NextRequest,
+  NextResponse,
+};

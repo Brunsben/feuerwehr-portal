@@ -4,14 +4,7 @@ import { usePsa } from "@/lib/psa-store";
 import { usePsaUser } from "../layout-client";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import {
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  BookOpen,
-  X,
-} from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, BookOpen, X } from "lucide-react";
 import type { Norm } from "@/lib/psa-types";
 
 export default function NormenPage() {

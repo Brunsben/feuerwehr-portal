@@ -432,8 +432,13 @@ async function MemberDashboard({
         <CardContent>
           {member.memberLicenses.length === 0 ? (
             <p className="text-muted-foreground">
-              Noch keine Klassen hinterlegt. Bitte den Administrator
-              kontaktieren.
+              Noch keine Klassen hinterlegt.{" "}
+              <Link
+                href="/fk/profil"
+                className="text-red-600 hover:underline"
+              >
+                Jetzt im Profil eintragen →
+              </Link>
             </p>
           ) : (
             <div className="space-y-3">

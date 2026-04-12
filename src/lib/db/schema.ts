@@ -521,6 +521,26 @@ export const fkUploadedFilesRelations = relations(
   }),
 );
 
+export const fkConsentRecordsRelations = relations(
+  fkConsentRecords,
+  ({ one }) => ({
+    user: one(fkUsers, {
+      fields: [fkConsentRecords.userId],
+      references: [fkUsers.id],
+    }),
+  }),
+);
+
+export const fkNotificationsLogRelations = relations(
+  fkNotificationsLog,
+  ({ one }) => ({
+    user: one(fkUsers, {
+      fields: [fkNotificationsLog.userId],
+      references: [fkUsers.id],
+    }),
+  }),
+);
+
 // FK: TYPE EXPORTS
 export type FkUser = typeof fkUsers.$inferSelect;
 export type FkNewUser = typeof fkUsers.$inferInsert;

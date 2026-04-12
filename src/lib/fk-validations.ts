@@ -46,6 +46,17 @@ export const changePasswordSchema = z.object({
     .min(8, "Passwort muss mindestens 8 Zeichen lang sein"),
 });
 
+export const updateUserLicensesSchema = z.object({
+  licenses: z.array(
+    z.object({
+      licenseClassId: z.string().min(1, "Klasse ist erforderlich"),
+      issueDate: z.string().optional(),
+      expiryDate: z.string().optional(),
+      restriction188: z.boolean().default(false),
+    }),
+  ),
+});
+
 export const consentSchema = z.object({
   dataProcessing: z.boolean(),
   emailNotifications: z.boolean().optional(),

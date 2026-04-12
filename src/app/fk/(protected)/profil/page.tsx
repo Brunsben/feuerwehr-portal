@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import WithdrawConsentButton from "./withdraw-consent-button";
 import ExportDataButton from "./export-data-button";
+import LicenseClassEditor from "./license-class-editor";
 
 export default async function ProfilPage() {
   const session = await fkAuth();
@@ -66,41 +67,8 @@ export default async function ProfilPage() {
         </CardContent>
       </Card>
 
-      {/* License classes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Meine Führerscheinklassen</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {user.memberLicenses.length === 0 ? (
-            <p className="text-gray-400">Keine Klassen hinterlegt.</p>
-          ) : (
-            <div className="space-y-2">
-              {user.memberLicenses.map((ml) => (
-                <div
-                  key={ml.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{ml.licenseClass.code}</Badge>
-                    <span className="text-sm">{ml.licenseClass.name}</span>
-                    {ml.restriction188 && (
-                      <Badge className="text-xs bg-amber-100 text-amber-800">
-                        SZ 188
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {ml.expiryDate
-                      ? `bis ${new Date(ml.expiryDate).toLocaleDateString("de-DE")}`
-                      : "Unbefristet"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* License classes – editable */}
+      <LicenseClassEditor initialLicenses={user.memberLicenses as any} />
 
       {/* DSGVO section */}
       <Card>

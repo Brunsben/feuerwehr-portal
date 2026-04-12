@@ -31,14 +31,20 @@ function DayPlanningTab() {
     setSaving(true);
     try {
       const today = new Date().toISOString().split("T")[0];
+      // Bei zwei Menüs: description aus menu1 / menu2 zusammensetzen
+      const effectiveDescription = zweiMenues
+        ? [menu1Name, menu2Name].filter(Boolean).join(" / ") || "Tagesmenü"
+        : description || menu?.description || "";
       await fetch("/api/food/admin/menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: today,
-          description: description || menu?.description || "",
+          description: effectiveDescription,
           zwei_menues_aktiv: zweiMenues,
-          menu1_name: menu1Name,
+          menu1_name: zweiMenues
+            ? menu1Name
+            : description || menu?.description || "",
           menu2_name: menu2Name,
           registration_deadline: deadline,
           deadline_enabled: deadlineEnabled,
@@ -82,33 +88,46 @@ function DayPlanningTab() {
       <div className="bg-card border border-border rounded-xl p-6">
         <h2 className="text-lg font-semibold mb-4">Tagesmenü</h2>
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1">
-              Beschreibung
-            </label>
-            <input
-              type="text"
-              list="preset-menus"
-              value={description || menu?.description || ""}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2.5 rounded-lg border border-border bg-background focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="z.B. Schnitzel mit Pommes"
-            />
-            {presets.length > 0 && (
-              <datalist id="preset-menus">
-                {presets.map((p: { id: number; name: string }) => (
-                  <option key={p.id} value={p.name} />
-                ))}
-              </datalist>
-            )}
-          </div>
+          {!zweiMenues && (
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
+                Beschreibung
+              </label>
+              <input
+                type="text"
+                list="preset-menus"
+                value={description || menu?.description || ""}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2.5 rounded-lg border border-border bg-background focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                placeholder="z.B. Schnitzel mit Pommes"
+              />
+              {presets.length > 0 && (
+                <datalist id="preset-menus">
+                  {presets.map((p: { id: number; name: string }) => (
+                    <option key={p.id} value={p.name} />
+                  ))}
+                </datalist>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={zweiMenues}
-                onChange={(e) => setZweiMenues(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setZweiMenues(checked);
+                  // Beschreibung → Menü 1 übernehmen beim Aktivieren
+                  if (checked && !menu1Name) {
+                    setMenu1Name(description || menu?.description || "");
+                  }
+                  // Menü 1 → Beschreibung übernehmen beim Deaktivieren
+                  if (!checked && menu1Name && !description) {
+                    setDescription(menu1Name);
+                  }
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-muted peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
@@ -124,9 +143,11 @@ function DayPlanningTab() {
                 </label>
                 <input
                   type="text"
+                  list="preset-menus"
                   value={menu1Name}
                   onChange={(e) => setMenu1Name(e.target.value)}
                   className="w-full p-2.5 rounded-lg border border-border bg-background focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="z.B. Schnitzel mit Pommes"
                 />
               </div>
               <div>
@@ -135,11 +156,27 @@ function DayPlanningTab() {
                 </label>
                 <input
                   type="text"
+                  list="preset-menus-2"
                   value={menu2Name}
                   onChange={(e) => setMenu2Name(e.target.value)}
                   className="w-full p-2.5 rounded-lg border border-border bg-background focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  placeholder="z.B. Nudeln mit Soße"
                 />
               </div>
+              {presets.length > 0 && (
+                <>
+                  <datalist id="preset-menus">
+                    {presets.map((p: { id: number; name: string }) => (
+                      <option key={p.id} value={p.name} />
+                    ))}
+                  </datalist>
+                  <datalist id="preset-menus-2">
+                    {presets.map((p: { id: number; name: string }) => (
+                      <option key={p.id} value={p.name} />
+                    ))}
+                  </datalist>
+                </>
+              )}
             </div>
           )}
 

@@ -11,7 +11,7 @@
 #                       ├─ /api/auth/  → Portal (Next.js :8080)
 #                       ├─ /food/      → Portal (Next.js :8080)
 #                       ├─ /psa/       → Portal (Next.js :8080)
-#                       └─ /fk/        → Führerscheinkontrolle (Next.js)
+#                       └─ /fk/        → Portal (Next.js :8080)
 #
 #   Alle Services teilen sich die PostgreSQL-Instanz und das fw-network.
 #   Auth-Proxy ist nicht mehr nötig — Portal (Next.js) übernimmt die
@@ -19,8 +19,7 @@
 #
 # Verzeichnisstruktur (erwartet):
 #   ~/fw/
-#   ├── feuerwehr-portal/    ← dieses Repo (docker-compose.yml hier)
-#   └── FK-App/              ← Führerscheinkontrolle
+#   └── feuerwehr-portal/    ← dieses Repo (docker-compose.yml hier)
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Logging Default (schützt Pi-Disk vor Log-Explosion) ─────────────────────
@@ -61,9 +60,13 @@ services:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET muss in .env gesetzt sein}"
       FEUERWEHR_NAME: "${FEUERWEHR_NAME:-Meine Feuerwehr}"
+      ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY:?FK_ENCRYPTION_KEY muss in .env gesetzt sein}"
+      BACKUP_API_KEY: "${FK_BACKUP_API_KEY:?FK_BACKUP_API_KEY muss in .env gesetzt sein}"
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - fk_data:/app/data
     networks:
       - fw-network
     restart: unless-stopped
@@ -84,38 +87,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - fw-network
-    restart: unless-stopped
-
-  # ── Führerscheinkontrolle (Next.js) ───────────────────────────────────────
-  fuehrerschein:
-    build:
-      context: ../FK-App
-    container_name: fw_fuehrerschein
-    logging: *default-logging
-    environment:
-      PROJECT_ROOT: "/app"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-nocodb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-nocodb}"
-      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET muss in .env gesetzt sein}"
-      AUTH_PROXY_URL: "http://portal:8080"
-      ENCRYPTION_KEY: "${FK_ENCRYPTION_KEY:?FK_ENCRYPTION_KEY muss in .env gesetzt sein}"
-      BACKUP_API_KEY: "${FK_BACKUP_API_KEY:?FK_BACKUP_API_KEY muss in .env gesetzt sein}"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - fk_data:/app/data
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'node -e "fetch(''http://127.0.0.1:3000/fk'').then(r=>{process.exit(r.ok||r.status===307||r.status===308?0:1)}).catch(()=>process.exit(1))"',
-        ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
     networks:
       - fw-network
     restart: unless-stopped

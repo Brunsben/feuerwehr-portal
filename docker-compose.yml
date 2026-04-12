@@ -9,8 +9,8 @@
 # Architektur:
 #   nginx (Port 8180) ─┬─ /           → Portal (Next.js :8080)
 #                       ├─ /api/auth/  → Portal (Next.js :8080)
+#                       ├─ /food/      → Portal (Next.js :8080)
 #                       ├─ /psa/       → PSA-Frontend (nginx → PostgREST)
-#                       ├─ /food/      → FoodBot (Flask/Gunicorn)
 #                       └─ /fk/        → Führerscheinkontrolle (Next.js)
 #
 #   Alle Services teilen sich die PostgreSQL-Instanz und das fw-network.
@@ -21,7 +21,6 @@
 #   ~/fw/
 #   ├── feuerwehr-portal/    ← dieses Repo (docker-compose.yml hier)
 #   ├── psa-verwaltung/      ← PSA-Verwaltung
-#   ├── FoodBot/             ← FoodBot
 #   └── FK-App/              ← Führerscheinkontrolle
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -133,41 +132,7 @@ services:
       - fw-network
     restart: unless-stopped
 
-  # ── FoodBot (Essensbestellung — Flask + SQLite) ───────────────────────────
-  foodbot:
-    build:
-      context: ../FoodBot
-    container_name: fw_foodbot
-    logging: *default-logging
-    environment:
-      SECRET_KEY: "${FOODBOT_SECRET_KEY:?FOODBOT_SECRET_KEY muss in .env gesetzt sein}"
-      DATABASE_URI: "sqlite:////app/data/foodbot.db"
-      ADMIN_PASSWORD: "${FOODBOT_ADMIN_PASSWORD:?FOODBOT_ADMIN_PASSWORD muss in .env gesetzt sein}"
-      JWT_SECRET: "${JWT_SECRET}"
-      POSTGREST_URL: "http://postgrest:3000"
-      APPLICATION_ROOT: "/food"
-    volumes:
-      - foodbot_data:/app/data
-    depends_on:
-      postgrest:
-        condition: service_started
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:5001/')",
-        ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    networks:
-      - fw-network
-    restart: unless-stopped
-
-  # ── Führerscheinkontrolle (Next.js + SQLite) ─────────────────────────────
+  # ── Führerscheinkontrolle (Next.js) ───────────────────────────────────────
   fuehrerschein:
     build:
       context: ../FK-App
@@ -222,5 +187,4 @@ volumes:
     external: true
     name: setup_postgres_data
   uptime_data:
-  foodbot_data:
   fk_data:

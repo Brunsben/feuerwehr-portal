@@ -27,7 +27,37 @@ async function getUser(req: NextRequest) {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Öffentliche Routes — immer erreichbar
+  // === FK-App Routes (/fk/*) ===
+  if (pathname.startsWith("/fk")) {
+    const fkPublicRoutes = [
+      "/fk/login",
+      "/fk/api/health",
+      "/fk/api/backup",
+      "/fk/datenschutz-einwilligung",
+      "/fk/passwort-aendern",
+    ];
+    const isFkPublic =
+      pathname === "/fk" || fkPublicRoutes.some((r) => pathname.startsWith(r));
+
+    const user = await getUser(req);
+    const isLoggedIn = !!user;
+
+    if (isFkPublic) {
+      if (isLoggedIn && pathname === "/fk/login") {
+        return NextResponse.redirect(new URL("/fk/dashboard", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/fk/login", req.url));
+    }
+
+    // FK admin-Prüfung erfolgt intern über fkAuth()
+    return NextResponse.next();
+  }
+
+  // === Portal Routes ===
   const publicRoutes = ["/login", "/setup", "/api/auth"];
   const isPublic = publicRoutes.some((r) => pathname.startsWith(r));
 

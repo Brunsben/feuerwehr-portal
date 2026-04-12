@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 // Bestehendes Schema beibehalten (Legacy-Name aus NocoDB-Zeiten)
 export const schema = pgSchema("pxicv3djlauluse");
@@ -299,3 +300,233 @@ export const foodPresetMenus = schema.table("food_preset_menus", {
   name: text("name").notNull().unique(),
   sortOrder: integer("sort_order").notNull().default(0),
 });
+
+// ============================================================================
+// FK: FÜHRERSCHEINKONTROLLE (Separates PostgreSQL-Schema)
+// ============================================================================
+const fk = pgSchema("fw_fuehrerschein");
+
+// FK: USERS
+export const fkUsers = fk.table("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name").notNull(),
+  role: text("role", { enum: ["admin", "member"] })
+    .notNull()
+    .default("member"),
+  dateOfBirth: text("date_of_birth"),
+  phone: text("phone"),
+  isActive: boolean("is_active").notNull().default(true),
+  consentGiven: boolean("consent_given").notNull().default(false),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// FK: LICENSE CLASSES
+export const fkLicenseClasses = fk.table("license_classes", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isExpiring: boolean("is_expiring").notNull().default(false),
+  defaultCheckIntervalMonths: integer("default_check_interval_months")
+    .notNull()
+    .default(6),
+  defaultValidityYears: integer("default_validity_years"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+// FK: MEMBER LICENSES
+export const fkMemberLicenses = fk.table("member_licenses", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => fkUsers.id, { onDelete: "cascade" }),
+  licenseClassId: text("license_class_id")
+    .notNull()
+    .references(() => fkLicenseClasses.id),
+  issueDate: text("issue_date"),
+  expiryDate: text("expiry_date"),
+  checkIntervalMonths: integer("check_interval_months").notNull().default(6),
+  notes: text("notes"),
+  restriction188: boolean("restriction_188").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// FK: LICENSE CHECKS
+export const fkLicenseChecks = fk.table("license_checks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => fkUsers.id, { onDelete: "cascade" }),
+  checkedByUserId: text("checked_by_user_id").references(() => fkUsers.id),
+  checkDate: text("check_date").notNull(),
+  checkType: text("check_type", {
+    enum: ["photo_upload", "in_person"],
+  }).notNull(),
+  result: text("result", { enum: ["pending", "approved", "rejected"] })
+    .notNull()
+    .default("pending"),
+  rejectionReason: text("rejection_reason"),
+  nextCheckDue: text("next_check_due"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// FK: UPLOADED FILES
+export const fkUploadedFiles = fk.table("uploaded_files", {
+  id: text("id").primaryKey(),
+  checkId: text("check_id")
+    .notNull()
+    .references(() => fkLicenseChecks.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => fkUsers.id, { onDelete: "cascade" }),
+  filePath: text("file_path").notNull(),
+  originalFilename: text("original_filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  fileSize: integer("file_size"),
+  side: text("side", { enum: ["front", "back"] }).notNull(),
+  autoDeleteAfter: text("auto_delete_after"),
+  uploadedAt: timestamp("uploaded_at", { mode: "string" })
+    .notNull()
+    .defaultNow(),
+});
+
+// FK: CONSENT RECORDS
+export const fkConsentRecords = fk.table("consent_records", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => fkUsers.id, { onDelete: "cascade" }),
+  consentType: text("consent_type", {
+    enum: ["data_processing", "email_notifications", "photo_upload"],
+  }).notNull(),
+  given: boolean("given").notNull().default(false),
+  givenAt: text("given_at"),
+  withdrawnAt: text("withdrawn_at"),
+  policyVersion: text("policy_version").notNull(),
+  method: text("method").notNull().default("web_form"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// FK: NOTIFICATIONS LOG
+export const fkNotificationsLog = fk.table("notifications_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => fkUsers.id, { onDelete: "cascade" }),
+  type: text("type", {
+    enum: [
+      "check_reminder_4w",
+      "check_reminder_1w",
+      "check_overdue",
+      "license_expiry_3m",
+      "license_expiry_1m",
+      "license_expired",
+      "admin_summary",
+    ],
+  }).notNull(),
+  subject: text("subject"),
+  sentAt: timestamp("sent_at", { mode: "string" }).notNull().defaultNow(),
+  status: text("status", { enum: ["sent", "failed", "pending"] })
+    .notNull()
+    .default("pending"),
+  errorMessage: text("error_message"),
+});
+
+// FK: AUDIT LOG
+export const fkAuditLog = fk.table("audit_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => fkUsers.id),
+  action: text("action").notNull(),
+  entityType: text("entity_type"),
+  entityId: text("entity_id"),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// FK: APP SETTINGS
+export const fkAppSettings = fk.table("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
+});
+
+// ============================================================================
+// FK: RELATIONS
+// ============================================================================
+export const fkUsersRelations = relations(fkUsers, ({ many }) => ({
+  memberLicenses: many(fkMemberLicenses),
+  licenseChecks: many(fkLicenseChecks, { relationName: "userChecks" }),
+  checkedByMe: many(fkLicenseChecks, { relationName: "checkerChecks" }),
+  uploadedFiles: many(fkUploadedFiles),
+  consentRecords: many(fkConsentRecords),
+  notifications: many(fkNotificationsLog),
+}));
+
+export const fkLicenseClassesRelations = relations(
+  fkLicenseClasses,
+  ({ many }) => ({
+    memberLicenses: many(fkMemberLicenses),
+  }),
+);
+
+export const fkMemberLicensesRelations = relations(
+  fkMemberLicenses,
+  ({ one }) => ({
+    user: one(fkUsers, {
+      fields: [fkMemberLicenses.userId],
+      references: [fkUsers.id],
+    }),
+    licenseClass: one(fkLicenseClasses, {
+      fields: [fkMemberLicenses.licenseClassId],
+      references: [fkLicenseClasses.id],
+    }),
+  }),
+);
+
+export const fkLicenseChecksRelations = relations(
+  fkLicenseChecks,
+  ({ one, many }) => ({
+    user: one(fkUsers, {
+      fields: [fkLicenseChecks.userId],
+      references: [fkUsers.id],
+      relationName: "userChecks",
+    }),
+    checkedBy: one(fkUsers, {
+      fields: [fkLicenseChecks.checkedByUserId],
+      references: [fkUsers.id],
+      relationName: "checkerChecks",
+    }),
+    uploadedFiles: many(fkUploadedFiles),
+  }),
+);
+
+export const fkUploadedFilesRelations = relations(
+  fkUploadedFiles,
+  ({ one }) => ({
+    check: one(fkLicenseChecks, {
+      fields: [fkUploadedFiles.checkId],
+      references: [fkLicenseChecks.id],
+    }),
+    user: one(fkUsers, {
+      fields: [fkUploadedFiles.userId],
+      references: [fkUsers.id],
+    }),
+  }),
+);
+
+// FK: TYPE EXPORTS
+export type FkUser = typeof fkUsers.$inferSelect;
+export type FkNewUser = typeof fkUsers.$inferInsert;
+export type FkLicenseClass = typeof fkLicenseClasses.$inferSelect;
+export type FkMemberLicense = typeof fkMemberLicenses.$inferSelect;
+export type FkLicenseCheck = typeof fkLicenseChecks.$inferSelect;
+export type FkUploadedFile = typeof fkUploadedFiles.$inferSelect;
+export type FkConsentRecord = typeof fkConsentRecords.$inferSelect;
+export type FkAuditLogEntry = typeof fkAuditLog.$inferSelect;

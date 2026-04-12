@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
     let foodRolle: string | null = null;
     let fkRolle: string | null = null;
     let kameradName: string | undefined;
+    let kameradEmail: string | undefined;
 
     if (user.kameradId) {
       const [kamerad] = await db
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
         foodRolle = kamerad.foodRolle;
         fkRolle = kamerad.fkRolle;
         kameradName = `${kamerad.vorname} ${kamerad.name}`;
+        kameradEmail = kamerad.email || undefined;
       }
     }
 
@@ -115,6 +117,7 @@ export async function POST(req: NextRequest) {
       app_role: user.rolle,
       kamerad_id: user.kameradId,
       kamerad_name: kameradName,
+      email: kameradEmail,
       psa_rolle: psaRolle,
       food_rolle: foodRolle,
       fk_rolle: fkRolle,

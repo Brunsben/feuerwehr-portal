@@ -433,10 +433,7 @@ async function MemberDashboard({
           {member.memberLicenses.length === 0 ? (
             <p className="text-muted-foreground">
               Noch keine Klassen hinterlegt.{" "}
-              <Link
-                href="/fk/profil"
-                className="text-red-600 hover:underline"
-              >
+              <Link href="/fk/profil" className="text-red-600 hover:underline">
                 Jetzt im Profil eintragen →
               </Link>
             </p>

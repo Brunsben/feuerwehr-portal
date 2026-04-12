@@ -73,12 +73,18 @@ export async function fkAuth(): Promise<FkAuthSession | null> {
         where: eq(fkUsers.id, kameradId),
       });
     } else {
-      if (user.role !== fkRole || user.name !== kameradName) {
+      const jwtEmail = String(payload.email || "");
+      const needsUpdate =
+        user.role !== fkRole ||
+        user.name !== kameradName ||
+        (jwtEmail && user.email !== jwtEmail);
+      if (needsUpdate) {
         await db
           .update(fkUsers)
           .set({
             role: fkRole,
             name: kameradName,
+            ...(jwtEmail ? { email: jwtEmail } : {}),
             updatedAt: new Date().toISOString(),
           })
           .where(eq(fkUsers.id, kameradId));

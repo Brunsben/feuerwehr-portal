@@ -55,6 +55,7 @@ export interface JwtPayload {
   app_role: string;
   kamerad_id: number | null;
   kamerad_name?: string;
+  email?: string;
   psa_rolle?: string | null;
   food_rolle?: string | null;
   fk_rolle?: string | null;

@@ -31,8 +31,23 @@ export default function FoodTouchPage() {
     card_id?: string;
     personal_number?: string;
   } | null>(null);
+  const [clock, setClock] = useState("");
   const bufferRef = useRef("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Live clock
+  useEffect(() => {
+    const update = () =>
+      setClock(
+        new Date().toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+    update();
+    const interval = setInterval(update, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data, mutate } = useSWR<StatusData>("/api/food/status", fetcher, {
     refreshInterval: 10000,
@@ -141,12 +156,31 @@ export default function FoodTouchPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 select-none bg-background">
-      {/* Header */}
+      {/* Header with logo */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold">Essensanmeldung</h1>
-        <p className="text-2xl mt-2 text-muted-foreground">
-          {data?.registrationCount ?? 0} Anmeldungen
-        </p>
+        <div className="flex items-center justify-center gap-4 mb-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/favicon.svg"
+            alt="Feuerwehr"
+            className="h-14 w-14 rounded-xl shadow-md"
+          />
+          <div className="text-left">
+            <h1 className="text-4xl font-bold">Essensanmeldung</h1>
+            <p className="text-sm text-muted-foreground">
+              Feuerwehr-Portal
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-3 mt-3">
+          <span className="text-3xl font-semibold tabular-nums text-muted-foreground">
+            {clock}
+          </span>
+          <span className="text-muted-foreground/50">•</span>
+          <span className="text-2xl text-muted-foreground">
+            {data?.registrationCount ?? 0} Anmeldungen
+          </span>
+        </div>
       </div>
 
       {/* Menu display */}

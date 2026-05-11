@@ -1,12 +1,12 @@
 # ── Stage 1: Install dependencies ────────────────────────
-FROM node:25-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # ── Stage 2: Build ───────────────────────────────────────
-FROM node:25-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -16,7 +16,7 @@ RUN npm run build
 RUN npm run postbuild
 
 # ── Stage 3: Production ─────────────────────────────────
-FROM node:25-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat

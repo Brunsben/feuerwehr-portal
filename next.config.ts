@@ -10,6 +10,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   compress: true,
+  experimental: {
+    useTypeScriptCli: true,
+  },
   // Portal läuft auf Root-Pfad — kein basePath
   images: {
     unoptimized: true,

@@ -29,13 +29,13 @@ export const createCheckSchema = z.object({
   userId: z.string(),
   checkType: z.enum(["photo_upload", "in_person"]),
   result: z.enum(["pending", "approved", "rejected"]).default("pending"),
-  notes: z.string().optional(),
+  notes: z.string().nullish(),
 });
 
 export const updateCheckSchema = z.object({
   result: z.enum(["approved", "rejected"]),
-  rejectionReason: z.string().optional(),
-  notes: z.string().optional(),
+  rejectionReason: z.string().nullish(),
+  notes: z.string().nullish(),
 });
 
 export const updateSettingsSchema = z.record(z.string(), z.string());

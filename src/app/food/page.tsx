@@ -167,9 +167,7 @@ export default function FoodTouchPage() {
           />
           <div className="text-left">
             <h1 className="text-4xl font-bold">Essensanmeldung</h1>
-            <p className="text-sm text-muted-foreground">
-              Feuerwehr-Portal
-            </p>
+            <p className="text-sm text-muted-foreground">Feuerwehr-Portal</p>
           </div>
         </div>
         <div className="flex items-center justify-center gap-3 mt-3">

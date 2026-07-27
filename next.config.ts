@@ -13,11 +13,8 @@ const nextConfig: NextConfig = {
   experimental: {
     useTypeScriptCli: true,
   },
-  // typescript-eslint unterstützt TS7 noch nicht → Linting im Build überspringen
-  // Entfernen sobald typescript-eslint TS7 unterstützt (https://github.com/typescript-eslint/typescript-eslint/issues/10940)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // typescript-eslint unterstützt TS7 noch nicht → npm run lint liefert nur Basis-Regeln via eslint.config.mjs
+  // Next.js 16 führt kein Linting mehr als Teil von next build durch
   // Portal läuft auf Root-Pfad — kein basePath
   images: {
     unoptimized: true,

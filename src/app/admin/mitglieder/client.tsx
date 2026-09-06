@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Header } from "@/components/header";
 import {
   Plus,
@@ -13,8 +13,10 @@ import {
   Link as LinkIcon,
   Unlink,
   Save,
+  GraduationCap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AUSBILDUNGEN_KATALOG, type Ausbildung } from "@/lib/ausbildungen";
 
 // ── Types ────────────────────────────────────────────────
 interface Kamerad {
@@ -107,8 +109,11 @@ export function MitgliederClient({
 }) {
   const [kameraden, setKameraden] = useState<Kamerad[]>([]);
   const [benutzer, setBenutzer] = useState<Benutzer[]>([]);
+  const [alleAusbildungen, setAlleAusbildungen] = useState<Ausbildung[]>([]);
+  const [formAusbildungen, setFormAusbildungen] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [filterAusbildung, setFilterAusbildung] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -123,12 +128,14 @@ export function MitgliederClient({
 
   const load = useCallback(async () => {
     try {
-      const [kRes, bRes] = await Promise.all([
+      const [kRes, bRes, aRes] = await Promise.all([
         fetch("/api/kameraden"),
         fetch("/api/benutzer"),
+        fetch("/api/ausbildungen"),
       ]);
       if (kRes.ok) setKameraden(await kRes.json());
       if (bRes.ok) setBenutzer(await bRes.json());
+      if (aRes.ok) setAlleAusbildungen(await aRes.json());
     } catch {
       toast.error("Fehler beim Laden der Daten");
     }
@@ -138,9 +145,25 @@ export function MitgliederClient({
     load();
   }, [load]);
 
+  // Ausbildungen je Kamerad
+  const ausbByKamerad = useMemo(() => {
+    const m = new Map<number, string[]>();
+    for (const a of alleAusbildungen) {
+      const arr = m.get(a.kameradId) || [];
+      arr.push(a.bezeichnung);
+      m.set(a.kameradId, arr);
+    }
+    return m;
+  }, [alleAusbildungen]);
+
   // Gefilterte Liste
   const filtered = kameraden.filter((k) => {
     if (!showInactive && !k.aktiv) return false;
+    if (
+      filterAusbildung &&
+      !(ausbByKamerad.get(k.id) || []).includes(filterAusbildung)
+    )
+      return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -155,6 +178,7 @@ export function MitgliederClient({
   function openCreate() {
     setEditId(null);
     setForm({ ...EMPTY_FORM });
+    setFormAusbildungen([]);
     setLinkedUser(null);
     setNewUserName("");
     setNewUserPin("");
@@ -165,12 +189,25 @@ export function MitgliederClient({
   function openEdit(k: Kamerad) {
     setEditId(k.id);
     setForm({ ...k });
+    setFormAusbildungen(
+      alleAusbildungen
+        .filter((a) => a.kameradId === k.id)
+        .map((a) => a.bezeichnung),
+    );
     const linked = benutzer.find((b) => b.KameradId === k.id) || null;
     setLinkedUser(linked);
     setNewUserName(linked?.Benutzername || "");
     setNewUserPin("");
     setNewUserRolle(linked?.Rolle || "User");
     setShowForm(true);
+  }
+
+  function toggleAusbildung(bezeichnung: string) {
+    setFormAusbildungen((prev) =>
+      prev.includes(bezeichnung)
+        ? prev.filter((b) => b !== bezeichnung)
+        : [...prev, bezeichnung],
+    );
   }
 
   function closeForm() {
@@ -242,6 +279,18 @@ export function MitgliederClient({
         }
       }
 
+      // Ausbildungen (Qualifikationen) speichern
+      if (kameradId) {
+        await fetch("/api/ausbildungen", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kameradId,
+            bezeichnungen: formAusbildungen,
+          }),
+        });
+      }
+
       toast.success(editId ? "Kamerad aktualisiert" : "Kamerad erstellt");
       closeForm();
       load();
@@ -309,6 +358,19 @@ export function MitgliederClient({
               className="w-full pl-9 pr-3 py-2 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
             />
           </div>
+          <select
+            value={filterAusbildung}
+            onChange={(e) => setFilterAusbildung(e.target.value)}
+            title="Nach Ausbildung filtern"
+            className="px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="">Alle Ausbildungen</option>
+            {AUSBILDUNGEN_KATALOG.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
           <div className="flex gap-2">
             <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
               <input
@@ -336,6 +398,7 @@ export function MitgliederClient({
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Name</th>
                 <th className="text-left px-4 py-3 font-medium">Dienstgrad</th>
+                <th className="text-left px-4 py-3 font-medium">Ausbildungen</th>
                 <th className="text-left px-4 py-3 font-medium">Email</th>
                 <th className="text-left px-4 py-3 font-medium">Personalnr.</th>
                 <th className="text-left px-4 py-3 font-medium">Login</th>
@@ -355,6 +418,23 @@ export function MitgliederClient({
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {k.dienstgrad || "–"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {(ausbByKamerad.get(k.id) || []).map((a) => (
+                          <span
+                            key={a}
+                            className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded"
+                          >
+                            {a}
+                          </span>
+                        ))}
+                        {!(ausbByKamerad.get(k.id) || []).length && (
+                          <span className="text-xs text-muted-foreground">
+                            –
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {k.email || "–"}
@@ -432,6 +512,18 @@ export function MitgliederClient({
                 {linked && (
                   <div className="mt-2 text-xs bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded inline-block">
                     Login: {linked.Benutzername}
+                  </div>
+                )}
+                {(ausbByKamerad.get(k.id) || []).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {(ausbByKamerad.get(k.id) || []).map((a) => (
+                      <span
+                        key={a}
+                        className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded"
+                      >
+                        {a}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
@@ -590,6 +682,30 @@ export function MitgliederClient({
                     onChange={(v) => updateForm("fkRolle", v)}
                     allowEmpty
                   />
+                </div>
+              </section>
+
+              {/* Ausbildungen */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Ausbildungen
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {AUSBILDUNGEN_KATALOG.map((a) => (
+                    <label
+                      key={a}
+                      className="flex items-center gap-2 text-sm cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formAusbildungen.includes(a)}
+                        onChange={() => toggleAusbildung(a)}
+                        className="rounded"
+                      />
+                      {a}
+                    </label>
+                  ))}
                 </div>
               </section>
 

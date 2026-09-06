@@ -23,6 +23,7 @@ import type {
   PsaStats,
 } from "./psa-types";
 import { GROESSE_KAT_MAP } from "./psa-types";
+import type { Ausbildung } from "./ausbildungen";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ interface PsaStore {
   normen: Norm[];
   changelog: ChangelogEntry[];
   schaeden: Schaden[];
+  ausbildungen: Ausbildung[];
 
   // Computed
   stats: PsaStats;
@@ -114,12 +116,13 @@ export function PsaProvider({ children }: { children: ReactNode }) {
   const [normen, setNormen] = useState<Norm[]>([]);
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
   const [schaeden, setSchaeden] = useState<Schaden[]>([]);
+  const [ausbildungen, setAusbildungen] = useState<Ausbildung[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [kam, typ, aus, ag, pr, wa, no, cl, sc] = await Promise.all([
+      const [kam, typ, aus, ag, pr, wa, no, cl, sc, ab] = await Promise.all([
         api<Kamerad[]>("../kameraden"),
         api<Ausruestungstyp[]>("typen"),
         api<Ausruestungstueck[]>("ausruestung"),
@@ -129,6 +132,7 @@ export function PsaProvider({ children }: { children: ReactNode }) {
         api<Norm[]>("normen"),
         api<ChangelogEntry[]>("changelog").catch(() => []),
         api<Schaden[]>("schaeden"),
+        api<Ausbildung[]>("../ausbildungen").catch(() => []),
       ]);
       setKameraden(kam);
       setTypen(typ);
@@ -139,6 +143,7 @@ export function PsaProvider({ children }: { children: ReactNode }) {
       setNormen(no);
       setChangelog(cl);
       setSchaeden(sc);
+      setAusbildungen(ab);
     } finally {
       setLoading(false);
     }
@@ -470,6 +475,7 @@ export function PsaProvider({ children }: { children: ReactNode }) {
     normen,
     changelog,
     schaeden,
+    ausbildungen,
     stats,
     warnungen,
     loading,

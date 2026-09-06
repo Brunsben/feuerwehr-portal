@@ -170,6 +170,7 @@ export default function VerlaufPage() {
                 <th className="p-2">Datum</th>
                 <th className="p-2">Typ</th>
                 <th className="p-2">Kamerad</th>
+                <th className="p-2">Ergebnis</th>
                 <th className="p-2">Notizen</th>
               </tr>
             </thead>
@@ -182,6 +183,19 @@ export default function VerlaufPage() {
                   <td className="p-2 text-muted-foreground">{w.datum}</td>
                   <td className="p-2">{w.ausruestungstyp}</td>
                   <td className="p-2">{w.kamerad}</td>
+                  <td className="p-2">
+                    {w.ergebnis && (
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded ${
+                          w.ergebnis === "OK"
+                            ? "bg-green-500/10 text-green-500"
+                            : "bg-orange-500/10 text-orange-500"
+                        }`}
+                      >
+                        {w.ergebnis}
+                      </span>
+                    )}
+                  </td>
                   <td className="p-2 text-muted-foreground">{w.notizen}</td>
                 </tr>
               ))}

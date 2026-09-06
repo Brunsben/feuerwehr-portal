@@ -4,16 +4,32 @@ import { usePsa } from "@/lib/psa-store";
 import { Loader2, Users } from "lucide-react";
 import { useState, useMemo } from "react";
 import { GROESSE_KAT_MAP } from "@/lib/psa-types";
+import { AUSBILDUNGEN_KATALOG } from "@/lib/ausbildungen";
 
 export default function KameradenPage() {
-  const { kameraden, ausruestung, loading } = usePsa();
+  const { kameraden, ausruestung, ausbildungen, loading } = usePsa();
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [filterAusbildung, setFilterAusbildung] = useState("");
   const [detailId, setDetailId] = useState<number | null>(null);
+
+  const ausbByKamerad = useMemo(() => {
+    const m = new Map<number, string[]>();
+    for (const a of ausbildungen) {
+      const arr = m.get(a.kameradId) || [];
+      arr.push(a.bezeichnung);
+      m.set(a.kameradId, arr);
+    }
+    return m;
+  }, [ausbildungen]);
 
   const filtered = useMemo(() => {
     let list = kameraden;
     if (!showInactive) list = list.filter((k) => k.aktiv);
+    if (filterAusbildung)
+      list = list.filter((k) =>
+        (ausbByKamerad.get(k.id) || []).includes(filterAusbildung),
+      );
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(
@@ -24,7 +40,7 @@ export default function KameradenPage() {
       );
     }
     return list.sort((a, b) => a.name.localeCompare(b.name));
-  }, [kameraden, search, showInactive]);
+  }, [kameraden, search, showInactive, filterAusbildung, ausbByKamerad]);
 
   const detailKamerad = detailId
     ? kameraden.find((k) => k.id === detailId)
@@ -54,14 +70,27 @@ export default function KameradenPage() {
         zugewiesener Ausrüstung.
       </p>
 
-      <div className="flex gap-2 items-center">
+      <div className="flex flex-wrap gap-2 items-center">
         <input
           type="text"
           placeholder="Suche…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 px-3 py-1.5 bg-background border border-border rounded-md text-sm"
+          className="flex-1 min-w-40 px-3 py-1.5 bg-background border border-border rounded-md text-sm"
         />
+        <select
+          value={filterAusbildung}
+          onChange={(e) => setFilterAusbildung(e.target.value)}
+          title="Nach Ausbildung filtern"
+          className="px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+        >
+          <option value="">Alle Ausbildungen</option>
+          {AUSBILDUNGEN_KATALOG.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
         <label className="flex items-center gap-1.5 text-sm">
           <input
             type="checkbox"
@@ -103,6 +132,18 @@ export default function KameradenPage() {
                   {count} Stück
                 </span>
               </div>
+              {(ausbByKamerad.get(k.id) || []).length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {(ausbByKamerad.get(k.id) || []).map((a) => (
+                    <span
+                      key={a}
+                      className="text-xs bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded"
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              )}
             </button>
           );
         })}
@@ -138,6 +179,27 @@ export default function KameradenPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Ausbildungen */}
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2">Ausbildungen</h4>
+              {(ausbByKamerad.get(detailKamerad.id) || []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Keine Ausbildungen hinterlegt.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {(ausbByKamerad.get(detailKamerad.id) || []).map((a) => (
+                    <span
+                      key={a}
+                      className="text-xs bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded"
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Ausrüstung */}

@@ -80,6 +80,7 @@ export interface Waesche {
   kameradId: number | null;
   datum: string | null;
   waescheart: string | null;
+  ergebnis: string | null;
   notizen: string | null;
   seriennummer: string | null;
 }
@@ -153,3 +154,28 @@ export const STATUS_OPTIONS = [
   "In Reparatur",
   "Ausgesondert",
 ] as const;
+
+/** Ergebnis-Optionen einer Prüfung. Wert steuert ggf. den Folge-Status des Stücks. */
+export const PRUEFUNG_ERGEBNIS_OPTIONS = [
+  "Bestanden",
+  "Mängel (behebbar)",
+  "Durchgefallen / Defekt",
+  "Ausgesondert",
+] as const;
+export type PruefungErgebnis = (typeof PRUEFUNG_ERGEBNIS_OPTIONS)[number];
+
+/** Ordnet ein negatives Prüfergebnis dem Folge-Status des Ausrüstungsstücks zu. */
+export const PRUEFUNG_STATUS_MAP: Partial<Record<PruefungErgebnis, string>> = {
+  "Mängel (behebbar)": "In Reparatur",
+  "Durchgefallen / Defekt": "In Reparatur",
+  Ausgesondert: "Ausgesondert",
+};
+
+/** Ergebnis-/Zustands-Optionen einer Wäsche. */
+export const WAESCHE_ERGEBNIS_OPTIONS = [
+  "OK",
+  "Nachbehandlung nötig",
+  "Imprägnierung erneuert",
+  "Beschädigung festgestellt",
+] as const;
+export type WaescheErgebnis = (typeof WAESCHE_ERGEBNIS_OPTIONS)[number];

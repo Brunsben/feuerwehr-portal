@@ -9,6 +9,7 @@ import {
   eq,
   logChange,
 } from "../_shared";
+import { PRUEFUNG_STATUS_MAP, type PruefungErgebnis } from "@/lib/psa-types";
 import type { NextRequest } from "next/server";
 
 // POST /api/psa/batch — Massen-Prüfung oder Massen-Wäsche
@@ -52,12 +53,22 @@ export async function POST(req: NextRequest) {
         ergebnis: data.ergebnis || "Bestanden",
         pruefer: data.pruefer || user.sub,
         naechstePruefung: data.naechstePruefung,
+        seriennummer: item.seriennummer,
         notizen: data.notizen,
       });
       if (data.naechstePruefung) {
         await db
           .update(ausruestungstuecke)
           .set({ naechstePruefung: data.naechstePruefung })
+          .where(eq(ausruestungstuecke.id, id));
+      }
+      // Negatives Ergebnis → Status des Stücks automatisch anpassen
+      const folgeStatus =
+        PRUEFUNG_STATUS_MAP[(data.ergebnis || "") as PruefungErgebnis];
+      if (folgeStatus) {
+        await db
+          .update(ausruestungstuecke)
+          .set({ status: folgeStatus })
           .where(eq(ausruestungstuecke.id, id));
       }
       results.push(id);
@@ -68,6 +79,9 @@ export async function POST(req: NextRequest) {
         kamerad: item.kamerad,
         kameradId: item.kameradId,
         datum: data.datum,
+        waescheart: data.waescheart,
+        ergebnis: data.ergebnis,
+        seriennummer: item.seriennummer,
         notizen: data.notizen,
       });
       results.push(id);

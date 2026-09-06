@@ -151,8 +151,23 @@ export const waesche = schema.table("Waesche", {
   }),
   datum: text("Datum"),
   waescheart: text("Waescheart"),
+  ergebnis: text("Ergebnis"),
   notizen: text("Notizen"),
   seriennummer: text("Seriennummer"),
+});
+
+// ============================================================================
+// AUSBILDUNGEN (Qualifikationen pro Kamerad)
+// ============================================================================
+export const ausbildungen = schema.table("Ausbildungen", {
+  id: serial("id").primaryKey(),
+  kameradId: integer("kamerad_id")
+    .notNull()
+    .references(() => kameraden.id, { onDelete: "cascade" }),
+  bezeichnung: text("Bezeichnung").notNull(),
+  erworbenAm: date("Erworben_Am"),
+  notizen: text("Notizen"),
+  erstelltAm: timestamp("Erstellt_Am", { withTimezone: true }).defaultNow(),
 });
 
 // ============================================================================

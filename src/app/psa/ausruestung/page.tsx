@@ -14,9 +14,17 @@ import {
   Droplets,
   Calendar,
   X,
+  ScanLine,
 } from "lucide-react";
+import { BarcodeScanner } from "@/components/barcode-scanner";
 import type { Ausruestungstueck } from "@/lib/psa-types";
-import { STATUS_OPTIONS } from "@/lib/psa-types";
+import {
+  STATUS_OPTIONS,
+  PRUEFUNG_ERGEBNIS_OPTIONS,
+  WAESCHE_ERGEBNIS_OPTIONS,
+  PRUEFUNG_STATUS_MAP,
+  type PruefungErgebnis,
+} from "@/lib/psa-types";
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -45,6 +53,20 @@ export default function AusruestungPage() {
   const [showBatchDialog, setShowBatchDialog] = useState<
     "pruefung" | "waesche" | null
   >(null);
+  const [batchForm, setBatchForm] = useState<Record<string, string>>({});
+  const [scanTarget, setScanTarget] = useState<"search" | "seriennummer" | null>(
+    null,
+  );
+
+  function handleScan(code: string) {
+    const value = code.trim();
+    if (scanTarget === "search") {
+      setSearch(value);
+    } else if (scanTarget === "seriennummer") {
+      setEditItem((prev) => (prev ? { ...prev, seriennummer: value } : prev));
+    }
+    setScanTarget(null);
+  }
 
   const kategorien = useMemo(
     () => [...new Set(typen.map((t) => t.typ).filter(Boolean))].sort(),
@@ -124,16 +146,20 @@ export default function AusruestungPage() {
   async function handleBatch(action: "pruefung" | "waesche") {
     if (selectedIds.size === 0) return;
     try {
-      const data: Record<string, string> = { datum: todayStr() };
+      const data: Record<string, string> = { datum: todayStr(), ...batchForm };
       if (action === "pruefung") {
-        data.ergebnis = "Bestanden";
-        data.pruefer = user.sub;
+        data.ergebnis = batchForm.ergebnis || "Bestanden";
+        data.pruefer = batchForm.pruefer || user.sub;
+      } else {
+        data.ergebnis = batchForm.ergebnis || "OK";
       }
+      const count = selectedIds.size;
       await batchAction(action, [...selectedIds], data);
       setSelectedIds(new Set());
       setShowBatchDialog(null);
+      setBatchForm({});
       toast.success(
-        `${action === "pruefung" ? "Prüfung" : "Wäsche"} für ${selectedIds.size} Stück eingetragen`,
+        `${action === "pruefung" ? "Prüfung" : "Wäsche"} für ${count} Stück eingetragen`,
       );
     } catch (e: unknown) {
       toast.error(`Fehler: ${e instanceof Error ? e.message : "Unbekannt"}`);
@@ -175,6 +201,15 @@ export default function AusruestungPage() {
             className="w-full pl-8 pr-3 py-1.5 bg-background border border-border rounded-md text-sm"
           />
         </div>
+        <button
+          type="button"
+          onClick={() => setScanTarget("search")}
+          title="Seriennummer/QR scannen"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-background border border-border rounded-md text-sm hover:bg-muted"
+        >
+          <ScanLine className="h-4 w-4" />
+          <span className="hidden sm:inline">Scannen</span>
+        </button>
         <select
           value={filterTyp}
           onChange={(e) => setFilterTyp(e.target.value)}
@@ -202,14 +237,20 @@ export default function AusruestungPage() {
         <div className="flex items-center gap-2 text-sm bg-blue-500/10 border border-blue-500/30 rounded-md px-3 py-2">
           <span className="font-medium">{selectedIds.size} ausgewählt</span>
           <button
-            onClick={() => handleBatch("pruefung")}
+            onClick={() => {
+              setBatchForm({ ergebnis: "Bestanden", pruefer: user.sub });
+              setShowBatchDialog("pruefung");
+            }}
             className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
           >
             <Calendar className="h-3 w-3" />
             Prüfung
           </button>
           <button
-            onClick={() => handleBatch("waesche")}
+            onClick={() => {
+              setBatchForm({ ergebnis: "OK" });
+              setShowBatchDialog("waesche");
+            }}
             className="flex items-center gap-1 px-2 py-1 bg-cyan-600 text-white rounded text-xs hover:bg-cyan-700"
           >
             <Droplets className="h-3 w-3" />
@@ -328,6 +369,144 @@ export default function AusruestungPage() {
         )}
       </div>
 
+      {/* Batch-Ergebnis-Dialog (Prüfung / Wäsche) */}
+      {showBatchDialog && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">
+                {showBatchDialog === "pruefung" ? "Prüfung" : "Wäsche"} für{" "}
+                {selectedIds.size} Stück
+              </h3>
+              <button
+                onClick={() => {
+                  setShowBatchDialog(null);
+                  setBatchForm({});
+                }}
+                className="p-1 hover:bg-muted rounded"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-xs text-muted-foreground">Ergebnis</span>
+                <select
+                  value={batchForm.ergebnis || ""}
+                  onChange={(e) =>
+                    setBatchForm({ ...batchForm, ergebnis: e.target.value })
+                  }
+                  className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                >
+                  {(showBatchDialog === "pruefung"
+                    ? PRUEFUNG_ERGEBNIS_OPTIONS
+                    : WAESCHE_ERGEBNIS_OPTIONS
+                  ).map((o) => (
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+
+              {showBatchDialog === "pruefung" && (
+                <>
+                  <label className="block">
+                    <span className="text-xs text-muted-foreground">
+                      Prüfer
+                    </span>
+                    <input
+                      type="text"
+                      value={batchForm.pruefer || ""}
+                      onChange={(e) =>
+                        setBatchForm({ ...batchForm, pruefer: e.target.value })
+                      }
+                      className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-muted-foreground">
+                      Nächste Prüfung
+                    </span>
+                    <input
+                      type="date"
+                      value={batchForm.naechstePruefung || ""}
+                      onChange={(e) =>
+                        setBatchForm({
+                          ...batchForm,
+                          naechstePruefung: e.target.value,
+                        })
+                      }
+                      className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                    />
+                  </label>
+                  {PRUEFUNG_STATUS_MAP[
+                    (batchForm.ergebnis || "") as PruefungErgebnis
+                  ] && (
+                    <p className="text-xs text-orange-500">
+                      Status der Stücke wird automatisch auf „
+                      {
+                        PRUEFUNG_STATUS_MAP[
+                          batchForm.ergebnis as PruefungErgebnis
+                        ]
+                      }
+                      " gesetzt.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {showBatchDialog === "waesche" && (
+                <label className="block">
+                  <span className="text-xs text-muted-foreground">
+                    Waschart (optional)
+                  </span>
+                  <input
+                    type="text"
+                    value={batchForm.waescheart || ""}
+                    onChange={(e) =>
+                      setBatchForm({ ...batchForm, waescheart: e.target.value })
+                    }
+                    placeholder="z. B. Grundreinigung, Imprägnierung"
+                    className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                  />
+                </label>
+              )}
+
+              <label className="block">
+                <span className="text-xs text-muted-foreground">Notizen</span>
+                <textarea
+                  value={batchForm.notizen || ""}
+                  onChange={(e) =>
+                    setBatchForm({ ...batchForm, notizen: e.target.value })
+                  }
+                  rows={2}
+                  className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                />
+              </label>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                onClick={() => {
+                  setShowBatchDialog(null);
+                  setBatchForm({});
+                }}
+                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={() => handleBatch(showBatchDialog)}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1.5"
+              >
+                <CheckSquare className="h-4 w-4" />
+                Eintragen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Modal */}
       {editItem && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -368,14 +547,24 @@ export default function AusruestungPage() {
                 <span className="text-xs text-muted-foreground">
                   Seriennummer
                 </span>
-                <input
-                  type="text"
-                  value={editItem.seriennummer || ""}
-                  onChange={(e) =>
-                    setEditItem({ ...editItem, seriennummer: e.target.value })
-                  }
-                  className="w-full mt-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
-                />
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={editItem.seriennummer || ""}
+                    onChange={(e) =>
+                      setEditItem({ ...editItem, seriennummer: e.target.value })
+                    }
+                    className="flex-1 px-2 py-1.5 bg-background border border-border rounded-md text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setScanTarget("seriennummer")}
+                    title="Seriennummer scannen"
+                    className="px-2.5 py-1.5 bg-background border border-border rounded-md hover:bg-muted"
+                  >
+                    <ScanLine className="h-4 w-4" />
+                  </button>
+                </div>
               </label>
               <label className="block">
                 <span className="text-xs text-muted-foreground">Kamerad</span>
@@ -479,6 +668,18 @@ export default function AusruestungPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {scanTarget && (
+        <BarcodeScanner
+          onScan={handleScan}
+          onClose={() => setScanTarget(null)}
+          title={
+            scanTarget === "search"
+              ? "Ausrüstung per Code finden"
+              : "Seriennummer scannen"
+          }
+        />
       )}
     </div>
   );

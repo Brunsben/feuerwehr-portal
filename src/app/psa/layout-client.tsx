@@ -52,43 +52,126 @@ interface NavItem {
   requireAdmin?: boolean;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/psa", icon: LayoutDashboard },
-  { label: "Mein Dashboard", href: "/psa/mein-dashboard", icon: User },
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Ausrüstung",
-    href: "/psa/ausruestung",
-    icon: Shield,
-    requireEdit: true,
+    items: [
+      { label: "Dashboard", href: "/psa", icon: LayoutDashboard },
+      { label: "Mein Dashboard", href: "/psa/mein-dashboard", icon: User },
+    ],
   },
   {
-    label: "Kameraden",
-    href: "/psa/kameraden",
-    icon: Users,
-    requireEdit: true,
+    label: "Bestand",
+    items: [
+      {
+        label: "Ausrüstung",
+        href: "/psa/ausruestung",
+        icon: Shield,
+        requireEdit: true,
+      },
+      {
+        label: "Kameraden",
+        href: "/psa/kameraden",
+        icon: Users,
+        requireEdit: true,
+      },
+      {
+        label: "Warnungen",
+        href: "/psa/warnungen",
+        icon: AlertTriangle,
+        requireEdit: true,
+      },
+    ],
   },
-  { label: "Verlauf", href: "/psa/verlauf", icon: History, requireEdit: true },
-  { label: "Typen", href: "/psa/typen", icon: Tag, requireEdit: true },
-  { label: "Normen", href: "/psa/normen", icon: BookOpen, requireEdit: true },
   {
-    label: "Warnungen",
-    href: "/psa/warnungen",
-    icon: AlertTriangle,
-    requireEdit: true,
+    label: "Auswertung",
+    items: [
+      {
+        label: "Statistiken",
+        href: "/psa/statistiken",
+        icon: BarChart3,
+        requireEdit: true,
+      },
+      {
+        label: "Verlauf",
+        href: "/psa/verlauf",
+        icon: History,
+        requireEdit: true,
+      },
+    ],
   },
   {
-    label: "Statistiken",
-    href: "/psa/statistiken",
-    icon: BarChart3,
-    requireEdit: true,
-  },
-  {
-    label: "Changelog",
-    href: "/psa/changelog",
-    icon: FileText,
-    requireAdmin: true,
+    label: "Konfiguration",
+    items: [
+      { label: "Typen", href: "/psa/typen", icon: Tag, requireEdit: true },
+      { label: "Normen", href: "/psa/normen", icon: BookOpen, requireEdit: true },
+      {
+        label: "Changelog",
+        href: "/psa/changelog",
+        icon: FileText,
+        requireAdmin: true,
+      },
+    ],
   },
 ];
+
+function visibleGroups(user: PsaUserInfo): NavGroup[] {
+  return NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((item) => {
+      if (item.requireAdmin && !user.isAdmin) return false;
+      if (item.requireEdit && !user.canEdit) return false;
+      return true;
+    }),
+  })).filter((g) => g.items.length > 0);
+}
+
+function PsaNav({
+  groups,
+  pathname,
+  onNavigate,
+}: {
+  groups: NavGroup[];
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="flex-1 p-2 space-y-3 overflow-y-auto">
+      {groups.map((group, gi) => (
+        <div key={group.label ?? `g${gi}`} className="space-y-0.5">
+          {group.label && (
+            <p className="px-3 pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {group.label}
+            </p>
+          )}
+          {group.items.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                  active
+                    ? "bg-blue-500/10 text-blue-500 font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </nav>
+  );
+}
 
 // ── Layout component ───────────────────────────────────────────────────────
 
@@ -106,11 +189,7 @@ export function PsaLayoutClient({
   const { theme, setTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const visibleNav = NAV_ITEMS.filter((item) => {
-    if (item.requireAdmin && !user.isAdmin) return false;
-    if (item.requireEdit && !user.canEdit) return false;
-    return true;
-  });
+  const groups = visibleGroups(user);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -139,26 +218,7 @@ export function PsaLayoutClient({
                 {feuerwehrName}
               </p>
             </div>
-            <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-              {visibleNav.map((item) => {
-                const Icon = item.icon;
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                      active
-                        ? "bg-blue-500/10 text-blue-500 font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <PsaNav groups={groups} pathname={pathname} />
             <div className="p-3 border-t border-border space-y-2">
               <div className="text-xs text-muted-foreground">
                 {user.sub}
@@ -229,27 +289,11 @@ export function PsaLayoutClient({
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-                    {visibleNav.map((item) => {
-                      const Icon = item.icon;
-                      const active = pathname === item.href;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                            active
-                              ? "bg-blue-500/10 text-blue-500 font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                          }`}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </nav>
+                  <PsaNav
+                    groups={groups}
+                    pathname={pathname}
+                    onNavigate={() => setSidebarOpen(false)}
+                  />
                   <div className="p-3 border-t border-border">
                     <Link
                       href="/dashboard"
